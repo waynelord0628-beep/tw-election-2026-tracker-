@@ -515,6 +515,7 @@ header h1 {
   text-decoration: none;
 }
 .trade .name:hover { text-decoration: underline; }
+.trade .name.mono { font-size: 1em; color: var(--link); font-weight: 400; }
 .trade .addr-link,
 .trade .hash-link {
   color: var(--text);
@@ -692,6 +693,8 @@ footer {
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 12px;
 }
 .trades-table a.mono:hover { text-decoration: underline; }
+/* 名稱欄即使用短地址（mono）也維持與有名稱者同樣字體大小/顏色 */
+.trades-table a.name.mono { font-size: inherit; color: var(--link); font-weight: 400; }
 .table-foot { padding: 12px; text-align: center; color: var(--text-mute); font-size: 12px; }
 
 /* ─── 排序箭頭 ─── */
