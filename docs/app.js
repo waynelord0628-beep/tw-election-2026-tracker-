@@ -317,7 +317,7 @@ function renderTable(rows) {
       <td class="num"><b>$${Math.round(t.total)}</b></td>
       <td>${t.name
         ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
-        : '<span class="unnamed">(未命名)</span>'}</td>
+        : `<span class="unnamed mono" title="${t.wallet}">${shortAddr(t.wallet)}</span>`}</td>
       <td><a class="mono" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${shortAddr(t.wallet)}</a></td>
       <td><a class="mono" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></td>
     </tr>
@@ -421,7 +421,7 @@ function renderFeed(filtered) {
     const dirIcon  = t.direction === 'BUY' ? '▲ BUY'  : '▼ SELL';
     const nameHtml = t.name
       ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
-      : `<span class="name unnamed">(未命名)</span>`;
+      : `<span class="name unnamed mono" title="${t.wallet}">${shortAddr(t.wallet)}</span>`;
     return `
       <div class="trade ${partyLow} ${isNew ? 'new' : ''}">
         <div class="time" title="${localTime(t.timestamp)}">${timeAgo(t.timestamp)}</div>
