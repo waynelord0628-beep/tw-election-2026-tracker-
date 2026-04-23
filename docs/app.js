@@ -277,6 +277,18 @@ function renderTable(rows) {
 
   const head = `
     <table class="trades-table">
+      <colgroup>
+        <col style="width:155px">
+        <col style="width:62px">
+        <col style="width:62px">
+        <col>
+        <col style="width:95px">
+        <col style="width:70px">
+        <col style="width:95px">
+        <col>
+        <col style="width:120px">
+        <col style="width:120px">
+      </colgroup>
       <thead>
         <tr>
           ${thTime}

@@ -165,7 +165,7 @@ header h1 {
   background: var(--bg-3);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 4px 14px 4px 18px;
+  padding: 10px 14px 10px 18px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .search-pill:focus-within {
@@ -186,7 +186,7 @@ header h1 {
   outline: none;
   color: var(--text);
   font-size: 0.95em;
-  padding: 9px 0;
+  padding: 6px 0;
 }
 .search-pill input::placeholder { color: var(--text-mute); }
 .search-pill #searchClear {
@@ -593,7 +593,9 @@ footer {
 .trades-table {
   width: 100%; border-collapse: collapse; font-size: 13px;
   background: var(--bg-2); border-radius: 8px; overflow: hidden;
+  table-layout: fixed;
 }
+.trades-table td, .trades-table th { overflow: hidden; text-overflow: ellipsis; }
 .trades-table thead { background: var(--bg-3); position: sticky; top: 0; z-index: 5; }
 .trades-table th {
   padding: 10px 8px; text-align: left; font-weight: 600;

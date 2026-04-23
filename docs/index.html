@@ -1,66 +1,66 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026 台灣地方選舉 · Polymarket 即時下注監控</title>
-  <link rel="stylesheet" href="style.css?v=20260424e">
+  <title>2026 ?啁?唳?貉? 繚 Polymarket ?單?銝釣??</title>
+  <link rel="stylesheet" href="style.css?v=20260424f">
 </head>
 <body>
   <header>
     <div class="container header-bar">
       <div>
-        <h1>2026 台灣地方選舉 · Polymarket 即時下注</h1>
+        <h1>2026 ?啁?唳?貉? 繚 Polymarket ?單?銝釣</h1>
         <div class="meta">
-          <span id="lastUpdate">載入中…</span>
-          <span class="dot">•</span>
-          <span id="totalCount">0</span> 筆累計
-          <span class="dot">•</span>
-          <span class="auto-refresh">每 30 秒自動更新</span>
+          <span id="lastUpdate">頛銝凌?/span>
+          <span class="dot">??/span>
+          <span id="totalCount">0</span> 蝑敞閮?
+          <span class="dot">??/span>
+          <span class="auto-refresh">瘥?30 蝘???/span>
         </div>
       </div>
-      <button id="themeToggle" class="theme-toggle" title="切換日/夜模式" aria-label="切換主題">🌙</button>
+      <button id="themeToggle" class="theme-toggle" title="????憭芋撘? aria-label="??銝駁?">??</button>
     </div>
   </header>
 
   <section class="stats container">
     <div class="card kmt">
-      <div class="party-tag">KMT 國民黨</div>
-      <div class="row"><span>交易筆數</span><b id="kmtCount">-</b></div>
+      <div class="party-tag">KMT ??暺?/div>
+      <div class="row"><span>鈭斗?蝑</span><b id="kmtCount">-</b></div>
       <div class="row"><span>BUY shares</span><b id="kmtBuy">-</b></div>
       <div class="row"><span>SELL shares</span><b id="kmtSell">-</b></div>
-      <div class="row"><span>總交易量 USD</span><b id="kmtVol">-</b></div>
+      <div class="row"><span>蝮賭漱?? USD</span><b id="kmtVol">-</b></div>
     </div>
     <div class="card dpp">
-      <div class="party-tag">DPP 民進黨</div>
-      <div class="row"><span>交易筆數</span><b id="dppCount">-</b></div>
+      <div class="party-tag">DPP 瘞脤豪</div>
+      <div class="row"><span>鈭斗?蝑</span><b id="dppCount">-</b></div>
       <div class="row"><span>BUY shares</span><b id="dppBuy">-</b></div>
       <div class="row"><span>SELL shares</span><b id="dppSell">-</b></div>
-      <div class="row"><span>總交易量 USD</span><b id="dppVol">-</b></div>
+      <div class="row"><span>蝮賭漱?? USD</span><b id="dppVol">-</b></div>
     </div>
     <div class="card tpp">
-      <div class="party-tag">TPP 民眾黨</div>
-      <div class="row"><span>交易筆數</span><b id="tppCount">-</b></div>
+      <div class="party-tag">TPP 瘞暺?/div>
+      <div class="row"><span>鈭斗?蝑</span><b id="tppCount">-</b></div>
       <div class="row"><span>BUY shares</span><b id="tppBuy">-</b></div>
       <div class="row"><span>SELL shares</span><b id="tppSell">-</b></div>
-      <div class="row"><span>總交易量 USD</span><b id="tppVol">-</b></div>
+      <div class="row"><span>蝮賭漱?? USD</span><b id="tppVol">-</b></div>
     </div>
   </section>
 
   <nav class="filters container">
     <div class="filter-row">
       <div class="search-pill">
-        <span class="search-icon">🔍</span>
-        <input id="search" type="text" placeholder="輸入名稱 / 錢包地址 / Hash 進入查詢模式">
-        <button id="searchClear" type="button" title="清除搜尋" style="display:none;" aria-label="清除">✕</button>
+        <span class="search-icon">??</span>
+        <input id="search" type="text" placeholder="頛詨?迂 / ?Ｗ??啣? / Hash ?脣?亥岷璅∪?">
+        <button id="searchClear" type="button" title="皜??" style="display:none;" aria-label="皜">??/button>
       </div>
     </div>
     <div class="filter-row">
-      <!-- 政黨 -->
+      <!-- ?輸豪 -->
       <div class="pill-dropdown" data-pill="party">
         <button class="pill-trigger" type="button">
-          <span class="pill-text">政黨</span>
-          <span class="pill-caret">⌄</span>
+          <span class="pill-text">?輸豪</span>
+          <span class="pill-caret">??/span>
         </button>
         <div class="pill-panel">
           <div class="check-list">
@@ -69,86 +69,86 @@
             <label class="check-item"><input type="checkbox" data-party-check value="TPP"><span>TPP</span></label>
           </div>
           <div class="panel-actions">
-            <button class="btn-reset" type="button" data-reset="party">重設</button>
-            <button class="btn-confirm" type="button" data-confirm>確認</button>
+            <button class="btn-reset" type="button" data-reset="party">?身</button>
+            <button class="btn-confirm" type="button" data-confirm>蝣箄?</button>
           </div>
         </div>
       </div>
 
-      <!-- 方向 -->
+      <!-- ?孵? -->
       <div class="pill-dropdown" data-pill="dir">
         <button class="pill-trigger" type="button">
-          <span class="pill-text">方向</span>
-          <span class="pill-caret">⌄</span>
+          <span class="pill-text">?孵?</span>
+          <span class="pill-caret">??/span>
         </button>
         <div class="pill-panel">
           <div class="check-list">
-            <label class="check-item"><input type="checkbox" data-dir-check value="BUY"><span>▲ BUY</span></label>
-            <label class="check-item"><input type="checkbox" data-dir-check value="SELL"><span>▼ SELL</span></label>
+            <label class="check-item"><input type="checkbox" data-dir-check value="BUY"><span>??BUY</span></label>
+            <label class="check-item"><input type="checkbox" data-dir-check value="SELL"><span>??SELL</span></label>
           </div>
           <div class="panel-actions">
-            <button class="btn-reset" type="button" data-reset="dir">重設</button>
-            <button class="btn-confirm" type="button" data-confirm>確認</button>
+            <button class="btn-reset" type="button" data-reset="dir">?身</button>
+            <button class="btn-confirm" type="button" data-confirm>蝣箄?</button>
           </div>
         </div>
       </div>
 
-      <!-- 金額 -->
+      <!-- ?? -->
       <div class="pill-dropdown" data-pill="amount">
         <button class="pill-trigger" type="button">
-          <span class="pill-text">金額</span>
-          <span class="pill-caret">⌄</span>
+          <span class="pill-text">??</span>
+          <span class="pill-caret">??/span>
         </button>
         <div class="pill-panel">
           <div class="amount-inputs">
-            <input id="minUsd" type="number" min="0" placeholder="最小值">
-            <span class="amount-sep">—</span>
-            <input id="maxUsd" type="number" min="0" placeholder="最大值">
+            <input id="minUsd" type="number" min="0" placeholder="?撠?>
+            <span class="amount-sep">??/span>
+            <input id="maxUsd" type="number" min="0" placeholder="?憭批?>
           </div>
           <div class="panel-actions">
-            <button class="btn-reset" type="button" data-reset="amount">重設</button>
-            <button class="btn-confirm" type="button" data-confirm>確認</button>
+            <button class="btn-reset" type="button" data-reset="amount">?身</button>
+            <button class="btn-confirm" type="button" data-confirm>蝣箄?</button>
           </div>
         </div>
       </div>
 
-      <!-- 日期 -->
+      <!-- ?交? -->
       <div class="pill-dropdown pill-dropdown-date" data-pill="date">
         <button class="pill-trigger" type="button">
-          <span class="pill-text">日期</span>
-          <span class="pill-caret">⌄</span>
+          <span class="pill-text">?交?</span>
+          <span class="pill-caret">??/span>
         </button>
         <div class="pill-panel pill-panel-calendar">
           <div class="cal-range-display">
-            <span id="calStartLabel" class="cal-label-empty">開始日期</span>
-            <span class="cal-arrow">→</span>
-            <span id="calEndLabel" class="cal-label-empty">結束日期</span>
+            <span id="calStartLabel" class="cal-label-empty">???交?</span>
+            <span class="cal-arrow">??/span>
+            <span id="calEndLabel" class="cal-label-empty">蝯??交?</span>
           </div>
           <div class="cal-wrap" id="calWrap"></div>
           <div class="panel-actions">
-            <button class="btn-reset" type="button" data-reset="date">重設</button>
-            <button class="btn-confirm" type="button" data-confirm>確認</button>
+            <button class="btn-reset" type="button" data-reset="date">?身</button>
+            <button class="btn-confirm" type="button" data-confirm>蝣箄?</button>
           </div>
         </div>
       </div>
 
       <div class="spacer"></div>
-      <button class="ghost-btn" type="button" id="viewToggle" title="切換 feed/表格">📰 Feed</button>
-      <button class="ghost-btn" type="button" id="downloadCsv" title="下載目前篩選結果為 CSV">⬇ CSV</button>
+      <button class="ghost-btn" type="button" id="viewToggle" title="?? feed/銵冽">? Feed</button>
+      <button class="ghost-btn" type="button" id="downloadCsv" title="銝??桀?蝭拚蝯???CSV">漎?CSV</button>
     </div>
   </nav>
 
-  <!-- 查詢模式統計（只在有搜尋時出現） -->
+  <!-- ?亥岷璅∪?蝯梯?嚗?冽?????橘? -->
   <section class="query-summary container" id="querySummary" style="display:none;"></section>
 
   <main class="feed container" id="feed">
-    <div class="loading">載入中…</div>
+    <div class="loading">頛銝凌?/div>
   </main>
 
   <footer class="container">
-    <p>資料來源：Blockscout 鏈上 + Polymarket data-api ｜ 時區 UTC+8 ｜ 僅供研究參考，非投資建議</p>
+    <p>鞈?靘?嚗lockscout ?? + Polymarket data-api 嚚??? UTC+8 嚚????弦????鞈遣霅?/p>
   </footer>
 
-  <script src="app.js?v=20260424e"></script>
+  <script src="app.js?v=20260424f"></script>
 </body>
 </html>
