@@ -76,10 +76,27 @@ TOKENS = {
         "TPP",
         "No",
     ),
+    "82231109382498406896391295851782284283569219557409960401832593737036448492065": (
+        "Other",
+        "Yes",
+    ),
+    "112554554469608780935109413128297024037986430209534960411002187326289120920592": (
+        "Other",
+        "No",
+    ),
 }
 # token_key -> token_id（用於輪詢）
 TOKEN_KEY_TO_ID = {f"{p}_{o}": tid for tid, (p, o) in TOKENS.items()}
-TOKEN_KEYS_ORDERED = ["KMT_Yes", "KMT_No", "DPP_Yes", "DPP_No", "TPP_Yes", "TPP_No"]
+TOKEN_KEYS_ORDERED = [
+    "KMT_Yes",
+    "KMT_No",
+    "DPP_Yes",
+    "DPP_No",
+    "TPP_Yes",
+    "TPP_No",
+    "Other_Yes",
+    "Other_No",
+]
 
 # ─── 知名錢包 ──────────────────────────────────────────────────────────────
 KNOWN_WALLETS = {
@@ -741,14 +758,18 @@ def git_push_data(new_count: int = 0) -> bool:
 
 
 def import_history(conn, usdc_cache: dict):
-    count = conn.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
-    if count > 0:
-        print(f"[DB] 已有 {count} 筆資料，跳過歷史匯入")
-        return
-
-    print("[初始化] DB 為空，正在從 Blockscout 匯入全部歷史資料...")
+    """逐 token 檢查；該 token 在 DB 沒有任何資料才拉全歷史。
+    這樣新增 token 時可自動補拉，不會略過全部。"""
+    print("[初始化] 檢查每個 token 是否需匯入歷史...")
     total_new = 0
     for token_key in TOKEN_KEYS_ORDERED:
+        cnt = conn.execute(
+            "SELECT COUNT(*) FROM trades WHERE token_key=?", (token_key,)
+        ).fetchone()[0]
+        if cnt > 0:
+            print(f"  {token_key}: 已有 {cnt} 筆，跳過")
+            continue
+
         tid = TOKEN_KEY_TO_ID[token_key]
         url = (
             f"https://polygon.blockscout.com/api/v2/tokens/"
@@ -756,7 +777,7 @@ def import_history(conn, usdc_cache: dict):
         )
         page_params = None
         batch = 0
-        print(f"  {token_key}...", end="", flush=True)
+        print(f"  {token_key}（拉歷史）...", end="", flush=True)
         while True:
             try:
                 r = requests.get(url, params=page_params, timeout=30)

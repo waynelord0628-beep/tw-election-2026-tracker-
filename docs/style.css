@@ -142,7 +142,8 @@ header h1 {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  margin: 0 8px 16px 8px;
+  margin: 0 auto 16px auto;
+  max-width: 900px;
   padding: 16px 20px;
   background: var(--bg-2);
   border: 1px solid var(--border);
@@ -278,6 +279,7 @@ label input {
 .badge.party-kmt { background: #4682B4; color: white; }
 .badge.party-dpp { background: var(--dpp);  color: white; }
 .badge.party-tpp { background: var(--tpp);  color: black; }
+.badge.party-other { background: #888; color: white; }
 .badge.outcome   { background: var(--bg-3); color: var(--text-mute); border: 1px solid var(--border); }
 .badge.dir-buy   { background: var(--buy);  color: white; }
 .badge.dir-sell  { background: var(--sell); color: white; }
