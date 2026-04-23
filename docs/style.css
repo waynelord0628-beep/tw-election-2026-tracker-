@@ -733,23 +733,34 @@ body {
     border-radius: 0 0 8px 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   }
-  #search {
-    width: 100%;
-    flex-basis: 100%;
+  .filter-row { gap: 6px; }
+  .search-pill {
+    padding: 4px 10px 4px 12px;
+    border-radius: 999px;
+  }
+  .search-pill .search-icon { font-size: 0.9em; margin-right: 6px; }
+  .search-pill input {
     font-size: 16px;          /* 16px 防 iOS Safari 自動 zoom */
-    padding: 10px 12px;
-    min-height: 44px;
+    padding: 8px 0;
   }
-  .btn-group { width: 100%; flex-wrap: wrap; gap: 4px; }
-  .filter-btn {
-    flex: 1;
-    min-width: 56px;
-    min-height: 38px;
-    padding: 8px 4px;
+  .pill-trigger {
+    padding: 6px 10px;
     font-size: 0.82em;
+    min-height: 34px;
   }
-  label { width: 100%; display: flex; align-items: center; gap: 8px; font-size: 0.85em; }
-  label input { flex: 1; min-height: 36px; font-size: 16px; padding: 6px 8px; }
+  .pill-trigger .pill-text { max-width: 140px; }
+  .ghost-btn { padding: 6px 10px; font-size: 0.82em; min-height: 34px; }
+  .pill-panel {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+  .pill-panel-calendar { max-width: none; }
+  .cal-wrap { grid-template-columns: 1fr; gap: 12px; }
 
   /* Feed 卡片 */
   .feed { gap: 6px; }
@@ -823,6 +834,9 @@ body {
   .party-tag { font-size: 0.8em; }
   .row span, .row b { font-size: 0.72em; }
   .filter-btn { font-size: 0.72em; padding: 6px 2px; min-width: 48px; }
+  .pill-trigger { padding: 5px 8px; font-size: 0.78em; }
+  .ghost-btn { padding: 5px 8px; font-size: 0.78em; }
+  .search-pill input { font-size: 16px; padding: 6px 0; }
   .trade .badges .badge { font-size: 0.68em; padding: 2px 5px; }
   .qparties { grid-template-columns: 1fr; }
 }
