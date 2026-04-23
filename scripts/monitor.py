@@ -758,51 +758,47 @@ def git_push_data(new_count: int = 0) -> bool:
 
 
 def import_history(conn, usdc_cache: dict):
-    """逐 token 檢查；該 token 在 DB 沒有任何資料才拉全歷史。
-    這樣新增 token 時可自動補拉，不會略過全部。"""
-    print("[初始化] 檢查每個 token 是否需匯入歷史...")
+    """逐子市場（party）檢查；以 Polymarket data-api 為主拉全歷史。
+    若該 party 任一 token 已有資料則跳過（假設已匯過）。"""
+    print("[初始化] 檢查每個子市場是否需匯入歷史（用 data-api）...")
     total_new = 0
-    for token_key in TOKEN_KEYS_ORDERED:
+    for party, cond in CONDITION_IDS.items():
+        # 查該 party 旗下兩個 token 的總筆數
+        token_keys = [f"{party}_Yes", f"{party}_No"]
         cnt = conn.execute(
-            "SELECT COUNT(*) FROM trades WHERE token_key=?", (token_key,)
+            f"SELECT COUNT(*) FROM trades WHERE token_key IN ({','.join('?' * len(token_keys))})",
+            token_keys,
         ).fetchone()[0]
         if cnt > 0:
-            print(f"  {token_key}: 已有 {cnt} 筆，跳過")
+            print(f"  {party}: 已有 {cnt} 筆，跳過")
             continue
 
-        tid = TOKEN_KEY_TO_ID[token_key]
-        url = (
-            f"https://polygon.blockscout.com/api/v2/tokens/"
-            f"{CTF_ORIGINAL}/instances/{tid}/transfers"
-        )
-        page_params = None
+        print(f"  {party}（拉歷史）...", end="", flush=True)
         batch = 0
-        print(f"  {token_key}（拉歷史）...", end="", flush=True)
-        while True:
-            try:
-                r = requests.get(url, params=page_params, timeout=30)
-                if r.status_code != 200:
-                    break
-                d = r.json()
-            except Exception as e:
-                print(f" [ERR:{e}]", end="")
-                break
-            for item in d.get("items", []):
-                frm = item.get("from", {}).get("hash", "").lower()
-                to_ = item.get("to", {}).get("hash", "").lower()
-                txh = item.get("transaction_hash", "").lower()
-                ts = item.get("timestamp", "")
-                val = int(item.get("total", {}).get("value", 0)) / 1e6
-                res = process_transfer(
-                    conn, txh, token_key, frm, to_, val, ts, usdc_cache
+        offset = 0
+        PAGE = 500
+        try:
+            while True:
+                r = requests.get(
+                    "https://data-api.polymarket.com/trades",
+                    params={"market": cond, "limit": PAGE, "offset": offset},
+                    timeout=30,
                 )
-                if res:
-                    batch += 1
-            nxt = d.get("next_page_params")
-            if not nxt:
-                break
-            page_params = nxt
-            time.sleep(0.3)
+                if r.status_code != 200:
+                    print(f" [HTTP {r.status_code}]", end="")
+                    break
+                arr = r.json()
+                if not isinstance(arr, list) or not arr:
+                    break
+                for t in arr:
+                    if insert_data_api_trade(conn, t):
+                        batch += 1
+                if len(arr) < PAGE:
+                    break
+                offset += PAGE
+                time.sleep(0.2)
+        except Exception as e:
+            print(f" [ERR:{e}]", end="")
         print(f" +{batch}")
         total_new += batch
 
@@ -816,10 +812,133 @@ def import_history(conn, usdc_cache: dict):
 # 每個 token_key 記錄最新一頁的 txhash set，用於快速去重
 _last_seen: dict[str, set] = {k: set() for k in TOKEN_KEYS_ORDERED}
 
+# Polymarket data-api：以 conditionId 查整個子市場（Yes+No 一次拿到）
+# 這比 Blockscout 即時且不會漏單（Blockscout 索引 ERC-1155 transfer 偶爾延遲/缺失）
+CONDITION_IDS = {
+    "KMT": "0xc0f076bc4d90a44df34a729277e9d1f294f0cb60d2c3b1b3800908b1e15b923b",
+    "DPP": "0xea3b1d0099085f43a3098b3e1fbcbe62284ce1bda99384b3d46b82ff202ac016",
+    "TPP": "0x68fc8d466ddc10a1ae37b52642f36b93e413cf98ba5fe3947c242a9a727b2e94",
+    "Other": "0x7fafe56ec059988f2634100a672c46429207aaefd7d2c3b2ee55ac1c3b790676",
+}
+
+
+def _ts_unix_to_iso(ts_unix: int) -> str:
+    """1776964066 → '2026-04-23T17:07:46.000000Z'（與 Blockscout 同格式）"""
+    return datetime.fromtimestamp(int(ts_unix), timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%S.000000Z"
+    )
+
+
+def insert_data_api_trade(conn, t: dict) -> dict | None:
+    """把 data-api 一筆 trade 轉成 DB row 並插入。已存在回傳 None。"""
+    asset = str(t.get("asset", ""))
+    if asset not in TOKENS:
+        return None
+    party, outcome = TOKENS[asset]
+    token_key = f"{party}_{outcome}"
+
+    txhash = (t.get("transactionHash") or "").lower()
+    wallet = (t.get("proxyWallet") or "").lower()
+    direction = (t.get("side") or "").upper()
+    if direction not in ("BUY", "SELL") or not txhash or not wallet:
+        return None
+
+    shares = float(t.get("size") or 0)
+    price = float(t.get("price") or 0)
+    if shares < 0.000001:
+        return None
+
+    # 去重
+    cur = conn.execute(
+        "SELECT 1 FROM trades WHERE txhash=? AND token_key=? AND wallet=? AND direction=?",
+        (txhash, token_key, wallet, direction),
+    )
+    if cur.fetchone():
+        return None
+
+    ts_iso = _ts_unix_to_iso(t.get("timestamp") or 0)
+    total = round(shares * price, 4)
+
+    # data-api 直接給名字，省掉一次 profile API 呼叫
+    api_name = (t.get("pseudonym") or "").strip()
+    if not api_name:
+        api_name = (t.get("name") or "").strip()
+        # name 有時是「0xABC...-1234567」這種帳戶 ID，視為無名
+        if api_name.startswith("0x") and "-" in api_name:
+            api_name = ""
+    if api_name and wallet not in _name_cache:
+        _name_cache[wallet] = api_name
+        save_name_cache()
+    name = _name_cache.get(wallet) or api_name or get_wallet_name(wallet)
+
+    conn.execute(
+        """INSERT OR IGNORE INTO trades
+           (txhash, token_key, wallet, direction, shares, price, total,
+            name, timestamp, party, outcome, note)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            txhash,
+            token_key,
+            wallet,
+            direction,
+            shares,
+            price,
+            total,
+            name,
+            ts_iso,
+            party,
+            outcome,
+            "",
+        ),
+    )
+    conn.commit()
+
+    return dict(
+        txhash=txhash,
+        token_key=token_key,
+        wallet=wallet,
+        direction=direction,
+        shares=shares,
+        price=price,
+        total=total,
+        name=name,
+        timestamp=ts_iso,
+        party=party,
+        outcome=outcome,
+        note="",
+    )
+
+
+def poll_data_api(conn) -> int:
+    """以 Polymarket data-api 查每個子市場的最新交易，回傳新增筆數。"""
+    new_total = 0
+    for party, cond in CONDITION_IDS.items():
+        try:
+            r = requests.get(
+                "https://data-api.polymarket.com/trades",
+                params={"market": cond, "limit": 100},
+                timeout=15,
+            )
+            if r.status_code != 200:
+                print(f"  [data-api {party}] HTTP {r.status_code}")
+                continue
+            arr = r.json()
+            if not isinstance(arr, list):
+                continue
+            for t in arr:
+                row = insert_data_api_trade(conn, t)
+                if row:
+                    log_new_trade(row)
+                    new_total += 1
+        except Exception as e:
+            print(f"  [data-api 錯誤 {party}] {e}")
+    return new_total
+
 
 def poll_once(conn, usdc_cache: dict) -> int:
     """
-    對所有 6 個 token 輪詢；自動翻頁直到遇到已知 hash 為止，避免爆量漏單。
+    對所有 token 輪詢；自動翻頁直到遇到已知 hash 為止，避免爆量漏單。
+    （備援：Blockscout 偶爾漏 transfer，主要靠 poll_data_api）
     """
     new_total = 0
     MAX_PAGES = 20  # 安全上限，避免無限翻頁
@@ -939,7 +1058,10 @@ def main(poll_interval: int = POLL_INTERVAL):
     while True:
         try:
             cycle += 1
-            new_count = poll_once(conn, usdc_cache)
+            # 主來源：Polymarket data-api（即時、不漏單、含名稱）
+            new_count = poll_data_api(conn)
+            # 備援：Blockscout 也輪一輪，撿任何 data-api 沒回的（少見但保險）
+            new_count += poll_once(conn, usdc_cache)
 
             if new_count > 0:
                 # 平常：只更新「最新動態」獨立小檔（毫秒級、永不卡）
