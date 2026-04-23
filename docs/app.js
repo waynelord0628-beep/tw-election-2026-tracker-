@@ -209,7 +209,7 @@ function renderTable(rows) {
       <td>${t.outcome}</td>
       <td class="num">${fmt(t.shares, 2)}</td>
       <td class="num">${(t.price * 100).toFixed(1)}¢</td>
-      <td class="num"><b>($${Math.round(t.total)})</b></td>
+      <td class="num"><b>$${Math.round(t.total)}</b></td>
       <td>${t.name
         ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
         : '<span class="unnamed">(未命名)</span>'}</td>
@@ -253,7 +253,7 @@ function renderFeed(filtered) {
         <div class="amount">
           <div class="shares">${fmt(t.shares, 2)} shares</div>
           <div class="price">@ ${(t.price * 100).toFixed(1)}¢</div>
-          <div class="total">($${Math.round(t.total)})</div>
+          <div class="total">$${Math.round(t.total)}</div>
         </div>
       </div>
     `;
