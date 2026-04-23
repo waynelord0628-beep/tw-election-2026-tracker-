@@ -142,8 +142,7 @@ header h1 {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  margin: 0 auto 16px auto;
-  max-width: 900px;
+  margin: 0 0 16px 0;
   padding: 16px 20px;
   background: var(--bg-2);
   border: 1px solid var(--border);
