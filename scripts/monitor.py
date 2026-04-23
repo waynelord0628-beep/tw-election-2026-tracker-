@@ -23,6 +23,13 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
+# 強制 stdout/stderr 行緩衝 + 立即 flush，方便 systemd journald 即時抓到 print 訊息
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
 # ─── 設定 ──────────────────────────────────────────────────────────────────
 POLL_INTERVAL = 10  # 秒
 
@@ -35,6 +42,9 @@ EXCEL_PATH = os.path.join(PROJECT_ROOT, "監控_即時.xlsx")
 USDC_CACHE_FILE = os.path.join(PROJECT_ROOT, "usdc_cache.json")
 NAME_CACHE_FILE = os.path.join(PROJECT_ROOT, "wallet_names.json")
 WEB_DATA_PATH = os.path.join(PROJECT_ROOT, "docs", "data.json")
+HEARTBEAT_PATH = os.path.join(
+    PROJECT_ROOT, "heartbeat.txt"
+)  # 每輪 touch，外部驗證迴圈活著
 WEB_FEED_LIMIT = 5000  # data.json 內最多多少筆交易（含查詢用全歷史）
 GIT_AUTO_PUSH = True  # 自動 commit + push docs/data.json
 GIT_REPO_DIR = PROJECT_ROOT
@@ -1096,6 +1106,12 @@ def main(poll_interval: int = POLL_INTERVAL):
     while True:
         try:
             cycle += 1
+            # 心跳：每輪不論有無交易都更新 mtime，外部健康檢查可看 heartbeat.txt
+            try:
+                with open(HEARTBEAT_PATH, "w", encoding="utf-8") as _hb:
+                    _hb.write(f"{int(time.time())} cycle={cycle}\n")
+            except Exception:
+                pass
             # 主來源：Polymarket data-api（即時、不漏單、含名稱、takerOnly 去重）
             new_count = poll_data_api(conn)
             # 備援關閉：Blockscout 會把 maker/taker 兩端都灌入，破壞 takerOnly 去重
