@@ -134,11 +134,25 @@ function applySorting(rows) {
 }
 
 function setSort(col) {
-  if (sortCol === col) {
-    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  if (col === 'timestamp') {
+    // 時間欄：在 desc / asc 間切換（預設就是 timestamp desc）
+    if (sortCol === 'timestamp') {
+      sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+    } else {
+      sortCol = 'timestamp';
+      sortDir = 'desc';
+    }
   } else {
-    sortCol = col;
-    sortDir = col === 'timestamp' ? 'desc' : 'desc';
+    // 其他欄位：三段式 升序 → 降序 → 回預設(timestamp desc)
+    if (sortCol !== col) {
+      sortCol = col;
+      sortDir = 'asc';
+    } else if (sortDir === 'asc') {
+      sortDir = 'desc';
+    } else {
+      sortCol = 'timestamp';
+      sortDir = 'desc';
+    }
   }
   currentPage = 1;
   render();
