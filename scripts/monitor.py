@@ -25,14 +25,19 @@ from openpyxl.utils import get_column_letter
 
 # ─── 設定 ──────────────────────────────────────────────────────────────────
 POLL_INTERVAL = 10  # 秒
-DB_PATH = r"E:\polymarket選舉賭博\monitor.db"
-EXCEL_PATH = r"E:\polymarket選舉賭博\監控_即時.xlsx"
-USDC_CACHE_FILE = r"E:\polymarket選舉賭博\usdc_cache.json"
-NAME_CACHE_FILE = r"E:\polymarket選舉賭博\wallet_names.json"
-WEB_DATA_PATH = r"E:\polymarket選舉賭博\docs\data.json"
+
+# 自動推算專案根目錄（scripts/ 的上層），相容 Windows / Linux
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
+
+DB_PATH = os.path.join(PROJECT_ROOT, "monitor.db")
+EXCEL_PATH = os.path.join(PROJECT_ROOT, "監控_即時.xlsx")
+USDC_CACHE_FILE = os.path.join(PROJECT_ROOT, "usdc_cache.json")
+NAME_CACHE_FILE = os.path.join(PROJECT_ROOT, "wallet_names.json")
+WEB_DATA_PATH = os.path.join(PROJECT_ROOT, "docs", "data.json")
 WEB_FEED_LIMIT = 5000  # data.json 內最多多少筆交易（含查詢用全歷史）
 GIT_AUTO_PUSH = True  # 自動 commit + push docs/data.json
-GIT_REPO_DIR = r"E:\polymarket選舉賭博"
+GIT_REPO_DIR = PROJECT_ROOT
 
 TZ8 = timezone(timedelta(hours=8))
 
