@@ -814,6 +814,34 @@ def import_history(conn, usdc_cache: dict):
 # 主輪詢迴圈
 # ═══════════════════════════════════════════════════════════════════════════
 
+
+def backfill_missing_names(conn, max_wallets: int = 30) -> int:
+    """掃描 DB 中 name='' 的錢包，呼叫 Polymarket profile API 補名稱。
+    回傳本次成功補上的錢包數。每輪最多查 max_wallets 個避免過慢。"""
+    rows = conn.execute(
+        "SELECT DISTINCT wallet FROM trades WHERE name='' OR name IS NULL LIMIT ?",
+        (max_wallets,),
+    ).fetchall()
+    if not rows:
+        return 0
+    filled = 0
+    for (w,) in rows:
+        # 已快取（且為空）的就跳過避免無限重試
+        if w in _name_cache and not _name_cache[w]:
+            continue
+        nm = fetch_polymarket_name(w)
+        # 即使是空也寫入快取，避免下輪重複問
+        _name_cache[w] = nm
+        if nm:
+            conn.execute("UPDATE trades SET name=? WHERE wallet=?", (nm, w))
+            filled += 1
+        time.sleep(0.15)  # 輕度節流
+    save_name_cache()
+    if filled:
+        conn.commit()
+    return filled
+
+
 # 每個 token_key 記錄最新一頁的 txhash set，用於快速去重
 _last_seen: dict[str, set] = {k: set() for k in TOKEN_KEYS_ORDERED}
 
@@ -864,17 +892,22 @@ def insert_data_api_trade(conn, t: dict) -> dict | None:
     ts_iso = _ts_unix_to_iso(t.get("timestamp") or 0)
     total = round(shares * price, 4)
 
-    # data-api 直接給名字，省掉一次 profile API 呼叫
-    api_name = (t.get("pseudonym") or "").strip()
-    if not api_name:
-        api_name = (t.get("name") or "").strip()
-        # name 有時是「0xABC...-1234567」這種帳戶 ID，視為無名
-        if api_name.startswith("0x") and "-" in api_name:
-            api_name = ""
-    if api_name and wallet not in _name_cache:
+    # data-api 直接給名字。優先用 name（用戶自訂），fallback 到 pseudonym（系統生成）
+    real_name = (t.get("name") or "").strip()
+    # name 有時是「0xABC...-1234567」這種帳戶 ID，視為無名
+    if real_name.startswith("0x") and "-" in real_name:
+        real_name = ""
+    pseudo = (t.get("pseudonym") or "").strip()
+    api_name = real_name or pseudo
+
+    # 若 API 給了新名稱（且和快取不同），就更新快取
+    if api_name and _name_cache.get(wallet) != api_name:
         _name_cache[wallet] = api_name
         save_name_cache()
-    name = _name_cache.get(wallet) or api_name or get_wallet_name(wallet)
+        # 同步更新該錢包所有舊紀錄
+        conn.execute("UPDATE trades SET name=? WHERE wallet=?", (api_name, wallet))
+
+    name = api_name or _name_cache.get(wallet) or get_wallet_name(wallet)
 
     conn.execute(
         """INSERT OR IGNORE INTO trades
@@ -1080,6 +1113,14 @@ def main(poll_interval: int = POLL_INTERVAL):
                     now = datetime.now(TZ8).strftime("%H:%M:%S")
                     total = conn.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
                     print(f"[{now}] 輪詢 #{cycle}，無新交易（累計 {total} 筆）")
+
+            # 每 5 輪做一次名稱補抓（每輪最多 30 個錢包）
+            if cycle % 5 == 0:
+                filled = backfill_missing_names(conn, max_wallets=30)
+                if filled > 0:
+                    export_web_data(conn)  # 名稱有更新就同步前端
+                    git_push_data(filled)
+                    print(f"  [名稱補抓] 補上 {filled} 個錢包名稱")
 
             # 每 10 分鐘完整重建主檔（含全分頁）；被佔用就靜默跳過
             if time.time() - last_rebuild >= REBUILD_EVERY:
