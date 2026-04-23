@@ -235,7 +235,9 @@ label input {
 }
 
 /* ─── Feed ─── */
-.feed { display: flex; flex-direction: column; gap: 8px; padding-bottom: 40px; }
+.feed { display: block; padding-bottom: 40px; }
+.feed > .trade { margin-bottom: 8px; }
+.feed > .trades-table { width: 100%; }
 .loading { text-align: center; padding: 40px; color: var(--text-mute); }
 .empty { text-align: center; padding: 40px; color: var(--text-mute); }
 
