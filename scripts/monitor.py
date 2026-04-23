@@ -781,7 +781,12 @@ def import_history(conn, usdc_cache: dict):
             while True:
                 r = requests.get(
                     "https://data-api.polymarket.com/trades",
-                    params={"market": cond, "limit": PAGE, "offset": offset},
+                    params={
+                        "market": cond,
+                        "limit": PAGE,
+                        "offset": offset,
+                        "takerOnly": "true",
+                    },
                     timeout=30,
                 )
                 if r.status_code != 200:
@@ -916,7 +921,7 @@ def poll_data_api(conn) -> int:
         try:
             r = requests.get(
                 "https://data-api.polymarket.com/trades",
-                params={"market": cond, "limit": 100},
+                params={"market": cond, "limit": 100, "takerOnly": "true"},
                 timeout=15,
             )
             if r.status_code != 200:
