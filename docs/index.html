@@ -45,7 +45,7 @@
   </section>
 
   <nav class="filters container">
-    <input id="search" type="text" placeholder="🔍 搜尋名稱 / 地址 / Hash">
+    <input id="search" type="text" placeholder="🔍 輸入名稱 / 錢包地址 / Hash → 查詢模式（顯示統計 + 表格）">
     <div class="btn-group">
       <button class="filter-btn active" data-party="ALL">全部</button>
       <button class="filter-btn" data-party="KMT">KMT</button>
@@ -59,8 +59,12 @@
     </div>
     <div class="btn-group">
       <label>最低 USD：<input id="minUsd" type="number" min="0" value="0" style="width:80px"></label>
+      <button class="filter-btn" id="viewToggle" title="切換 feed/表格">📋 表格檢視</button>
     </div>
   </nav>
+
+  <!-- 查詢模式統計（只在有搜尋時出現） -->
+  <section class="query-summary container" id="querySummary" style="display:none;"></section>
 
   <main class="feed container" id="feed">
     <div class="loading">載入中…</div>

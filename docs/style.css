@@ -239,3 +239,73 @@ footer {
   .trade .amount { text-align: left; }
   header h1 { font-size: 1.3em; }
 }
+
+/* ═══════ 查詢摘要卡 ═══════ */
+.query-summary {
+  background: linear-gradient(135deg, #1a2230 0%, #232d3f 100%);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(240, 180, 0, 0.15);
+}
+.qheader { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.qtitle { font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 8px; }
+.qmeta { font-size: 13px; color: var(--text-mute); margin-bottom: 4px; line-height: 1.8; }
+.qmeta b { color: var(--text); }
+.tag {
+  display: inline-block; padding: 2px 8px; margin: 0 3px;
+  background: var(--bg-3); border-radius: 4px; font-size: 12px;
+}
+.tag.mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+.tag a, a.tag { color: var(--link); text-decoration: none; }
+
+.qparties { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.qcard {
+  background: var(--bg);
+  border-radius: 8px; padding: 12px;
+  border-left: 4px solid var(--border);
+}
+.qcard.kmt { border-left-color: var(--kmt); }
+.qcard.dpp { border-left-color: var(--dpp); }
+.qcard.tpp { border-left-color: var(--tpp); }
+.qparty { font-size: 14px; font-weight: bold; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.qrow { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+.qrow span { color: var(--text-mute); }
+.qrow b { color: var(--text); font-family: ui-monospace, monospace; }
+.qrow.net { border-top: 1px dashed var(--border); margin-top: 4px; padding-top: 6px; }
+.qrow.net b { color: var(--gold); }
+
+/* ═══════ Excel 風格表格 ═══════ */
+.trades-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  background: var(--bg-2); border-radius: 8px; overflow: hidden;
+}
+.trades-table thead { background: var(--bg-3); position: sticky; top: 0; z-index: 5; }
+.trades-table th {
+  padding: 10px 8px; text-align: left; font-weight: 600;
+  color: var(--text); border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.trades-table th.num { text-align: right; }
+.trades-table td {
+  padding: 8px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.trades-table td.num { text-align: right; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+.trades-table td.time-cell { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-mute); white-space: nowrap; }
+.trades-table tbody tr:hover { background: var(--bg-3); }
+.trades-table tr.kmt { border-left: 3px solid var(--kmt); }
+.trades-table tr.dpp { border-left: 3px solid var(--dpp); }
+.trades-table tr.tpp { border-left: 3px solid var(--tpp); }
+.trades-table .name { color: #4dabf7; font-weight: 600; text-decoration: none; }
+.trades-table .name:hover { text-decoration: underline; }
+.trades-table .unnamed { color: var(--text-mute); font-style: italic; font-size: 12px; }
+.trades-table a.mono {
+  color: var(--link); text-decoration: none;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 12px;
+}
+.trades-table a.mono:hover { text-decoration: underline; }
+.table-foot { padding: 12px; text-align: center; color: var(--text-mute); font-size: 12px; }
+
+#viewToggle { cursor: pointer; }

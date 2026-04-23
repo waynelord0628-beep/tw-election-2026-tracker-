@@ -1,11 +1,10 @@
-// app.js - 讀 data.json，渲染 feed，篩選 + 自動刷新
+// app.js - 讀 data.json，feed / 表格 / 查詢模式
 'use strict';
 
 const REFRESH_INTERVAL = 30000;  // 30 秒
-const DATA_URL = 'data.json?t=' + Date.now();
-
 let allTrades = [];
 let prevHashes = new Set();
+let viewMode = 'feed';  // 'feed' | 'table'
 let filters = {
   party:   'ALL',
   dir:     'ALL',
@@ -20,7 +19,6 @@ function fmt(n, d = 2) {
   if (n === null || n === undefined || isNaN(n)) return '-';
   return Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
 }
-
 function shortAddr(a) { return a ? a.slice(0, 6) + '…' + a.slice(-4) : ''; }
 function shortHash(h) { return h ? h.slice(0, 10) + '…' + h.slice(-6) : ''; }
 
@@ -41,6 +39,12 @@ function localTime(isoStr) {
   } catch { return isoStr; }
 }
 
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 // ─── 載入資料 ─────────────────────────────────────────────────
 async function loadData() {
   try {
@@ -52,7 +56,7 @@ async function loadData() {
     $('#totalCount').textContent = data.total_count.toLocaleString();
 
     renderStats(data.stats);
-    renderFeed();
+    render();
   } catch (e) {
     $('#feed').innerHTML = `<div class="empty">⚠️ 載入失敗：${e.message}</div>`;
   }
@@ -68,7 +72,7 @@ function renderStats(s) {
   }
 }
 
-// ─── 篩選 + 渲染 ──────────────────────────────────────────────
+// ─── 篩選 ─────────────────────────────────────────────────────
 function applyFilters(trades) {
   const kw = filters.search.toLowerCase().trim();
   const min = +filters.minUsd || 0;
@@ -77,34 +81,160 @@ function applyFilters(trades) {
     if (filters.dir   !== 'ALL' && t.direction !== filters.dir) return false;
     if (min > 0 && (t.total || 0) < min) return false;
     if (kw) {
-      const blob = (t.name + ' ' + t.wallet + ' ' + t.txhash).toLowerCase();
+      const blob = ((t.name || '') + ' ' + t.wallet + ' ' + t.txhash).toLowerCase();
       if (!blob.includes(kw)) return false;
     }
     return true;
   });
 }
 
-function renderFeed() {
+// ─── 主渲染 ───────────────────────────────────────────────────
+function render() {
   const filtered = applyFilters(allTrades);
-  const feed = $('#feed');
+  const isQuery = filters.search.trim().length > 0;
+  const summaryEl = $('#querySummary');
 
+  // 查詢模式 → 顯示統計卡 + 強制表格
+  if (isQuery) {
+    summaryEl.style.display = '';
+    renderQuerySummary(filtered);
+    renderTable(filtered);
+  } else {
+    summaryEl.style.display = 'none';
+    if (viewMode === 'table') renderTable(filtered);
+    else                      renderFeed(filtered);
+  }
+}
+
+// ─── 查詢模式統計 ────────────────────────────────────────────
+function renderQuerySummary(rows) {
+  const el = $('#querySummary');
+  if (!rows.length) {
+    el.innerHTML = `<div class="empty">查詢「${escapeHtml(filters.search)}」無符合資料</div>`;
+    return;
+  }
+
+  const agg = {};
+  let totalBuyUsd = 0, totalSellUsd = 0;
+  const wallets = new Set();
+  const names = new Set();
+
+  for (const t of rows) {
+    const p = t.party;
+    if (!agg[p]) agg[p] = { count: 0, buy_shares: 0, sell_shares: 0, buy_usd: 0, sell_usd: 0 };
+    agg[p].count++;
+    if (t.direction === 'BUY') {
+      agg[p].buy_shares += t.shares || 0;
+      agg[p].buy_usd    += t.total  || 0;
+      totalBuyUsd       += t.total  || 0;
+    } else {
+      agg[p].sell_shares += t.shares || 0;
+      agg[p].sell_usd    += t.total  || 0;
+      totalSellUsd       += t.total  || 0;
+    }
+    wallets.add(t.wallet);
+    if (t.name) names.add(t.name);
+  }
+
+  const partyHtml = Object.entries(agg).map(([p, d]) => `
+    <div class="qcard ${p.toLowerCase()}">
+      <div class="qparty">${p}</div>
+      <div class="qrow"><span>筆數</span><b>${d.count}</b></div>
+      <div class="qrow"><span>BUY shares</span><b>${fmt(d.buy_shares, 2)}</b></div>
+      <div class="qrow"><span>BUY USD</span><b>$${fmt(d.buy_usd, 2)}</b></div>
+      <div class="qrow"><span>SELL shares</span><b>${fmt(d.sell_shares, 2)}</b></div>
+      <div class="qrow"><span>SELL USD</span><b>$${fmt(d.sell_usd, 2)}</b></div>
+      <div class="qrow net"><span>淨持倉 shares</span><b>${fmt(d.buy_shares - d.sell_shares, 2)}</b></div>
+      <div class="qrow net"><span>淨投入 USD</span><b>$${fmt(d.buy_usd - d.sell_usd, 2)}</b></div>
+    </div>
+  `).join('');
+
+  const namesList = [...names].slice(0, 5).map(n => `<span class="tag">${escapeHtml(n)}</span>`).join(' ');
+  const walletList = [...wallets].slice(0, 3).map(w =>
+    `<a href="https://polygonscan.com/address/${w}" target="_blank" class="tag mono">${shortAddr(w)}</a>`
+  ).join(' ');
+
+  el.innerHTML = `
+    <div class="qheader">
+      <div class="qtitle">🔍 查詢結果：「${escapeHtml(filters.search)}」</div>
+      <div class="qmeta">
+        共 <b>${rows.length}</b> 筆 ｜
+        ${wallets.size} 個錢包 ${walletList} ${wallets.size > 3 ? `+${wallets.size - 3}` : ''} ｜
+        ${names.size > 0 ? `名稱：${namesList}` : '無命名'}
+      </div>
+      <div class="qmeta">
+        合計 BUY <b>$${fmt(totalBuyUsd, 2)}</b> ｜ SELL <b>$${fmt(totalSellUsd, 2)}</b> ｜
+        淨投入 <b style="color:${totalBuyUsd - totalSellUsd >= 0 ? '#4ade80' : '#f87171'}">
+          $${fmt(totalBuyUsd - totalSellUsd, 2)}
+        </b>
+      </div>
+    </div>
+    <div class="qparties">${partyHtml}</div>
+  `;
+}
+
+// ─── 表格檢視（Excel 風格） ──────────────────────────────────
+function renderTable(rows) {
+  const feed = $('#feed');
+  if (!rows.length) {
+    feed.innerHTML = '<div class="empty">無符合資料</div>';
+    return;
+  }
+  const list = rows.slice(0, 1000);
+  const head = `
+    <table class="trades-table">
+      <thead>
+        <tr>
+          <th>時間 (UTC+8)</th>
+          <th>政黨</th>
+          <th>方向</th>
+          <th>標的</th>
+          <th class="num">Shares</th>
+          <th class="num">價格</th>
+          <th class="num">總金額</th>
+          <th>名稱</th>
+          <th>錢包</th>
+          <th>Hash</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  const body = list.map(t => `
+    <tr class="${t.party.toLowerCase()}">
+      <td class="time-cell">${localTime(t.timestamp)}</td>
+      <td><span class="badge party-${t.party.toLowerCase()}">${t.party}</span></td>
+      <td><span class="badge ${t.direction === 'BUY' ? 'dir-buy' : 'dir-sell'}">${t.direction}</span></td>
+      <td>${t.outcome}</td>
+      <td class="num">${fmt(t.shares, 2)}</td>
+      <td class="num">$${fmt(t.price, 4)}</td>
+      <td class="num"><b>$${fmt(t.total, 2)}</b></td>
+      <td>${t.name
+        ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
+        : '<span class="unnamed">(未命名)</span>'}</td>
+      <td><a class="mono" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${shortAddr(t.wallet)}</a></td>
+      <td><a class="mono" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></td>
+    </tr>
+  `).join('');
+  feed.innerHTML = head + body + `</tbody></table>
+    <div class="table-foot">顯示 ${list.length} / ${rows.length} 筆${rows.length > 1000 ? '（前 1000 筆）' : ''}</div>`;
+}
+
+// ─── Feed 檢視（卡片） ───────────────────────────────────────
+function renderFeed(filtered) {
+  const feed = $('#feed');
   if (!filtered.length) {
     feed.innerHTML = '<div class="empty">沒有符合條件的交易</div>';
     return;
   }
-
-  // 取最新 200 筆
   const list = filtered.slice(0, 200);
   feed.innerHTML = list.map(t => {
     const isNew = !prevHashes.has(t.txhash + t.wallet + t.direction);
     const partyLow = t.party.toLowerCase();
     const dirClass = t.direction === 'BUY' ? 'dir-buy' : 'dir-sell';
     const dirIcon  = t.direction === 'BUY' ? '▲ BUY'  : '▼ SELL';
-
     const nameHtml = t.name
       ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
       : `<span class="name unnamed">(未命名)</span>`;
-
     return `
       <div class="trade ${partyLow} ${isNew ? 'new' : ''}">
         <div class="time" title="${localTime(t.timestamp)}">${timeAgo(t.timestamp)}</div>
@@ -115,12 +245,8 @@ function renderFeed() {
         </div>
         <div class="info">
           ${nameHtml}
-          <div class="addr">
-            <a href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${t.wallet}</a>
-          </div>
-          <div class="hash">
-            <a href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a>
-          </div>
+          <div class="addr"><a href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${t.wallet}</a></div>
+          <div class="hash"><a href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></div>
         </div>
         <div class="amount">
           <div class="shares">${fmt(t.shares, 2)} shares</div>
@@ -130,26 +256,24 @@ function renderFeed() {
       </div>
     `;
   }).join('');
-
-  // 記錄這次的 hash，下次比對誰是新的
   prevHashes = new Set(allTrades.map(t => t.txhash + t.wallet + t.direction));
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
 }
 
 // ─── 事件綁定 ─────────────────────────────────────────────────
 $('#search').addEventListener('input', e => {
   filters.search = e.target.value;
-  renderFeed();
+  render();
 });
 
 $('#minUsd').addEventListener('input', e => {
   filters.minUsd = e.target.value;
-  renderFeed();
+  render();
+});
+
+$('#viewToggle').addEventListener('click', () => {
+  viewMode = viewMode === 'feed' ? 'table' : 'feed';
+  $('#viewToggle').textContent = viewMode === 'feed' ? '📋 表格檢視' : '📰 Feed 檢視';
+  render();
 });
 
 document.querySelectorAll('.filter-btn[data-party]').forEach(b => {
@@ -157,7 +281,7 @@ document.querySelectorAll('.filter-btn[data-party]').forEach(b => {
     document.querySelectorAll('.filter-btn[data-party]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     filters.party = b.dataset.party;
-    renderFeed();
+    render();
   });
 });
 
@@ -166,7 +290,7 @@ document.querySelectorAll('.filter-btn[data-dir]').forEach(b => {
     document.querySelectorAll('.filter-btn[data-dir]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     filters.dir = b.dataset.dir;
-    renderFeed();
+    render();
   });
 });
 

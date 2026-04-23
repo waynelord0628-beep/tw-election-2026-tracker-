@@ -30,7 +30,7 @@ EXCEL_PATH = r"E:\polymarket選舉賭博\監控_即時.xlsx"
 USDC_CACHE_FILE = r"E:\polymarket選舉賭博\usdc_cache.json"
 NAME_CACHE_FILE = r"E:\polymarket選舉賭博\wallet_names.json"
 WEB_DATA_PATH = r"E:\polymarket選舉賭博\docs\data.json"
-WEB_FEED_LIMIT = 500  # data.json 內最多多少筆交易
+WEB_FEED_LIMIT = 5000  # data.json 內最多多少筆交易（含查詢用全歷史）
 GIT_AUTO_PUSH = True  # 自動 commit + push docs/data.json
 GIT_REPO_DIR = r"E:\polymarket選舉賭博"
 
