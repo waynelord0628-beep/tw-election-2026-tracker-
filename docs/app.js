@@ -4,7 +4,7 @@
 const REFRESH_INTERVAL = 30000;  // 30 秒
 let allTrades = [];
 let prevHashes = new Set();
-let viewMode = 'feed';  // 'feed' | 'table'
+let viewMode = 'table';  // 'feed' | 'table'，預設表格
 let filters = {
   party:   'ALL',
   dir:     'ALL',
