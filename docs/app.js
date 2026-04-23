@@ -33,6 +33,36 @@ function fmt(n, d = 2) {
 function shortAddr(a) { return a ? a.slice(0, 6) + '…' + a.slice(-4) : ''; }
 function shortHash(h) { return h ? h.slice(0, 10) + '…' + h.slice(-6) : ''; }
 
+// 複製按鈕（小型 SVG icon，hover 與 click 有視覺反饋）
+function copyBtn(value, label = '複製') {
+  return `<button class="copy-btn" type="button" data-copy="${value}" title="${label}" aria-label="${label}">
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <path fill="currentColor" d="M10 1H4a1 1 0 00-1 1v1H2a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1v-1h1a1 1 0 001-1V5l-4-4zM10 13H2V4h1v9a1 1 0 001 1h6v-1zm3-2H4V2h5v3h4v6z"/>
+    </svg>
+  </button>`;
+}
+
+// 全域複製事件代理（一次綁定，永遠有效）
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.copy-btn');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const text = btn.dataset.copy || '';
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.classList.add('copied');
+    const original = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = original;
+    }, 1200);
+  } catch (err) {
+    btn.title = '複製失敗：' + err.message;
+  }
+});
+
 function timeAgo(isoStr) {
   const t = new Date(isoStr).getTime();
   const diff = (Date.now() - t) / 1000;
@@ -315,11 +345,11 @@ function renderTable(rows) {
       <td class="num">${fmt(t.shares, 2)}</td>
       <td class="num">${(t.price * 100).toFixed(1)}¢</td>
       <td class="num"><b>$${Math.round(t.total)}</b></td>
-      <td>${t.name
+      <td><span class="cell-with-copy">${t.name
         ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
-        : `<span class="unnamed mono" title="${t.wallet}">${shortAddr(t.wallet)}</span>`}</td>
-      <td><a class="mono" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${shortAddr(t.wallet)}</a></td>
-      <td><a class="mono" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></td>
+        : `<a class="name unnamed mono" href="https://polymarket.com/profile/${t.wallet}" target="_blank" title="${t.wallet}">${shortAddr(t.wallet)}</a>`}${copyBtn(t.name || t.wallet, '複製名稱')}</span></td>
+      <td><span class="cell-with-copy"><a class="mono" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${shortAddr(t.wallet)}</a>${copyBtn(t.wallet, '複製錢包')}</span></td>
+      <td><span class="cell-with-copy"><a class="mono" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a>${copyBtn(t.txhash, '複製 Hash')}</span></td>
     </tr>
   `).join('');
 
@@ -421,7 +451,7 @@ function renderFeed(filtered) {
     const dirIcon  = t.direction === 'BUY' ? '▲ BUY'  : '▼ SELL';
     const nameHtml = t.name
       ? `<a class="name" href="https://polymarket.com/profile/${t.wallet}" target="_blank">${escapeHtml(t.name)}</a>`
-      : `<span class="name unnamed mono" title="${t.wallet}">${shortAddr(t.wallet)}</span>`;
+      : `<a class="name unnamed mono" href="https://polymarket.com/profile/${t.wallet}" target="_blank" title="${t.wallet}">${shortAddr(t.wallet)}</a>`;
     return `
       <div class="trade ${partyLow} ${isNew ? 'new' : ''}">
         <div class="time" title="${localTime(t.timestamp)}">${timeAgo(t.timestamp)}</div>
@@ -431,9 +461,9 @@ function renderFeed(filtered) {
           <span class="badge ${dirClass}">${dirIcon}</span>
         </div>
         <div class="info">
-          <div class="info-row"><span class="info-label">用戶名稱:</span> ${nameHtml}</div>
-          <div class="info-row"><span class="info-label">用戶地址:</span> <a class="addr-link" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${t.wallet}</a></div>
-          <div class="info-row"><span class="info-label">Tx Hash:</span> <a class="hash-link" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></div>
+          <div class="info-row"><span class="info-label">用戶名稱:</span> <span class="cell-with-copy">${nameHtml}${copyBtn(t.name || t.wallet, '複製名稱')}</span></div>
+          <div class="info-row"><span class="info-label">用戶地址:</span> <span class="cell-with-copy"><a class="addr-link" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${t.wallet}</a>${copyBtn(t.wallet, '複製錢包')}</span></div>
+          <div class="info-row"><span class="info-label">Tx Hash:</span> <span class="cell-with-copy"><a class="hash-link" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a>${copyBtn(t.txhash, '複製 Hash')}</span></div>
         </div>
         <div class="amount">
           <div class="shares">${fmt(t.shares, 2)} shares</div>

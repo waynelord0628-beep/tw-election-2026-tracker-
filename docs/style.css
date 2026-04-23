@@ -654,6 +654,41 @@ footer {
 .trades-table .name { color: #4dabf7; font-weight: 600; text-decoration: none; }
 .trades-table .name:hover { text-decoration: underline; }
 .trades-table .unnamed { color: var(--text-mute); font-style: italic; font-size: 12px; }
+
+/* ─── 複製按鈕（通用） ─── */
+.cell-with-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-mute);
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+}
+.copy-btn:hover {
+  opacity: 1;
+  background: rgba(77, 171, 247, 0.12);
+  color: #4dabf7;
+  border-color: rgba(77, 171, 247, 0.35);
+}
+.copy-btn.copied {
+  opacity: 1;
+  background: rgba(46, 204, 113, 0.18);
+  color: #2ecc71;
+  border-color: rgba(46, 204, 113, 0.5);
+}
+.cell-with-copy:hover .copy-btn { opacity: 0.9; }
 .trades-table a.mono {
   color: var(--link); text-decoration: none;
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 12px;
