@@ -562,13 +562,29 @@ footer {
   margin-bottom: 20px;
   box-shadow: 0 0 20px rgba(240, 180, 0, 0.15);
 }
-.qheader { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.qheader { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .qtitle { font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 8px; }
-.qmeta { font-size: 13px; color: var(--text-mute); margin-bottom: 4px; line-height: 1.8; }
-.qmeta b { color: var(--text); }
+.qmeta {
+  font-size: 13px;
+  color: #c9d1d9;
+  margin-bottom: 6px;
+  line-height: 1.8;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.qmeta b { color: #ffffff; }
+.qmeta .qsep { color: rgba(255,255,255,0.25); margin: 0 2px; }
 .tag {
-  display: inline-block; padding: 2px 8px; margin: 0 3px;
-  background: var(--bg-3); border-radius: 4px; font-size: 12px;
+  display: inline-block; padding: 2px 8px;
+  background: rgba(255,255,255,0.08); border-radius: 4px; font-size: 12px;
+  color: #e6edf3;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 .tag.mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
 .tag a, a.tag { color: var(--link); text-decoration: none; }
