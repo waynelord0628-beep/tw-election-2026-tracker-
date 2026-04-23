@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026 台灣地方選舉 · Polymarket 即時下注監控</title>
-  <link rel="stylesheet" href="style.css?v=20260424c">
+  <link rel="stylesheet" href="style.css?v=20260424e">
 </head>
 <body>
   <header>
@@ -48,33 +48,93 @@
   </section>
 
   <nav class="filters container">
-    <div class="search-wrap">
-      <input id="search" type="text" placeholder="🔍 輸入名稱 / 錢包地址 / Hash → 查詢模式（顯示統計 + 表格）">
-      <button id="searchClear" type="button" title="清除搜尋" style="display:none;" aria-label="清除">✕</button>
+    <div class="filter-row">
+      <div class="search-pill">
+        <span class="search-icon">🔍</span>
+        <input id="search" type="text" placeholder="輸入名稱 / 錢包地址 / Hash 進入查詢模式">
+        <button id="searchClear" type="button" title="清除搜尋" style="display:none;" aria-label="清除">✕</button>
+      </div>
     </div>
     <div class="filter-row">
-      <div class="btn-group">
-        <button class="filter-btn active" data-party="ALL">全部</button>
-        <button class="filter-btn" data-party="KMT">KMT</button>
-        <button class="filter-btn" data-party="DPP">DPP</button>
-        <button class="filter-btn" data-party="TPP">TPP</button>
-        <button class="filter-btn" data-party="Other">Other</button>
+      <!-- 政黨 -->
+      <div class="pill-dropdown" data-pill="party">
+        <button class="pill-trigger" type="button">
+          <span class="pill-text">政黨</span>
+          <span class="pill-caret">⌄</span>
+        </button>
+        <div class="pill-panel">
+          <div class="check-list">
+            <label class="check-item"><input type="checkbox" data-party-check value="KMT"><span>KMT</span></label>
+            <label class="check-item"><input type="checkbox" data-party-check value="DPP"><span>DPP</span></label>
+            <label class="check-item"><input type="checkbox" data-party-check value="TPP"><span>TPP</span></label>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-reset" type="button" data-reset="party">重設</button>
+            <button class="btn-confirm" type="button" data-confirm>確認</button>
+          </div>
+        </div>
       </div>
-      <div class="btn-group">
-        <button class="filter-btn dir active" data-dir="ALL">買賣全部</button>
-        <button class="filter-btn dir" data-dir="BUY">▲ BUY</button>
-        <button class="filter-btn dir" data-dir="SELL">▼ SELL</button>
+
+      <!-- 方向 -->
+      <div class="pill-dropdown" data-pill="dir">
+        <button class="pill-trigger" type="button">
+          <span class="pill-text">方向</span>
+          <span class="pill-caret">⌄</span>
+        </button>
+        <div class="pill-panel">
+          <div class="check-list">
+            <label class="check-item"><input type="checkbox" data-dir-check value="BUY"><span>▲ BUY</span></label>
+            <label class="check-item"><input type="checkbox" data-dir-check value="SELL"><span>▼ SELL</span></label>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-reset" type="button" data-reset="dir">重設</button>
+            <button class="btn-confirm" type="button" data-confirm>確認</button>
+          </div>
+        </div>
       </div>
-      <div class="btn-group">
-        <label>最低 USD：<input id="minUsd" type="number" min="0" value="0" style="width:80px"></label>
-        <button class="filter-btn" id="viewToggle" title="切換 feed/表格">📰 Feed 檢視</button>
-        <button class="filter-btn" id="downloadCsv" title="下載目前篩選結果為 CSV">⬇ 下載 CSV</button>
+
+      <!-- 金額 -->
+      <div class="pill-dropdown" data-pill="amount">
+        <button class="pill-trigger" type="button">
+          <span class="pill-text">金額</span>
+          <span class="pill-caret">⌄</span>
+        </button>
+        <div class="pill-panel">
+          <div class="amount-inputs">
+            <input id="minUsd" type="number" min="0" placeholder="最小值">
+            <span class="amount-sep">—</span>
+            <input id="maxUsd" type="number" min="0" placeholder="最大值">
+          </div>
+          <div class="panel-actions">
+            <button class="btn-reset" type="button" data-reset="amount">重設</button>
+            <button class="btn-confirm" type="button" data-confirm>確認</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="filter-row time-range-row">
-      <label class="time-label">開始時間 (UTC+8)：<input id="timeStart" type="datetime-local"></label>
-      <label class="time-label">結束時間 (UTC+8)：<input id="timeEnd" type="datetime-local"></label>
-      <button class="filter-btn" id="timeClear">清除時間</button>
+
+      <!-- 日期 -->
+      <div class="pill-dropdown pill-dropdown-date" data-pill="date">
+        <button class="pill-trigger" type="button">
+          <span class="pill-text">日期</span>
+          <span class="pill-caret">⌄</span>
+        </button>
+        <div class="pill-panel pill-panel-calendar">
+          <div class="cal-range-display">
+            <span id="calStartLabel" class="cal-label-empty">開始日期</span>
+            <span class="cal-arrow">→</span>
+            <span id="calEndLabel" class="cal-label-empty">結束日期</span>
+          </div>
+          <div class="cal-wrap" id="calWrap"></div>
+          <div class="panel-actions">
+            <button class="btn-reset" type="button" data-reset="date">重設</button>
+            <button class="btn-confirm" type="button" data-confirm>確認</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <button class="ghost-btn" type="button" id="viewToggle" title="切換 feed/表格">📰 Feed</button>
+      <button class="ghost-btn" type="button" id="downloadCsv" title="下載目前篩選結果為 CSV">⬇ CSV</button>
     </div>
   </nav>
 
@@ -89,6 +149,6 @@
     <p>資料來源：Blockscout 鏈上 + Polymarket data-api ｜ 時區 UTC+8 ｜ 僅供研究參考，非投資建議</p>
   </footer>
 
-  <script src="app.js?v=20260424c"></script>
+  <script src="app.js?v=20260424e"></script>
 </body>
 </html>

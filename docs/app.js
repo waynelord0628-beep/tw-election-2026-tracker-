@@ -6,12 +6,13 @@ let allTrades = [];
 let prevHashes = new Set();
 let viewMode = 'table';  // 'feed' | 'table'，預設表格
 let filters = {
-  party:     'ALL',
-  dir:       'ALL',
+  parties:   new Set(),  // 空 = 全部
+  dirs:      new Set(),  // 空 = 全部
   search:    '',
-  minUsd:    0,
-  timeStart: '',  // ISO string UTC+8 input value
-  timeEnd:   '',
+  minUsd:    '',
+  maxUsd:    '',
+  timeStart: '',  // 'YYYY-MM-DD' UTC+8 起點
+  timeEnd:   '',  // 'YYYY-MM-DD' UTC+8 終點（含當日）
 };
 
 // 排序狀態：col = 'timestamp' | 'shares' | 'price' | 'total'
@@ -49,11 +50,11 @@ function localTime(isoStr) {
   } catch { return isoStr; }
 }
 
-// 把 datetime-local 輸入值（UTC+8）轉成 UTC 毫秒數
-function tw8ToMs(val) {
+// 把 'YYYY-MM-DD'（UTC+8 整日）轉為 UTC 毫秒；end=true 表示當日 23:59:59.999
+function dateStrToMs(val, endOfDay = false) {
   if (!val) return null;
-  // val 格式 "2026-04-24T12:00"，視為 UTC+8
-  return new Date(val + ':00+08:00').getTime();
+  const t = endOfDay ? 'T23:59:59.999' : 'T00:00:00.000';
+  return new Date(val + t + '+08:00').getTime();
 }
 
 function escapeHtml(s) {
@@ -92,14 +93,16 @@ function renderStats(s) {
 // ─── 篩選 ─────────────────────────────────────────────────────
 function applyFilters(trades) {
   const kw = filters.search.toLowerCase().trim();
-  const min = +filters.minUsd || 0;
-  const tsStart = tw8ToMs(filters.timeStart);
-  const tsEnd   = tw8ToMs(filters.timeEnd);
+  const min = filters.minUsd === '' ? null : +filters.minUsd;
+  const max = filters.maxUsd === '' ? null : +filters.maxUsd;
+  const tsStart = dateStrToMs(filters.timeStart, false);
+  const tsEnd   = dateStrToMs(filters.timeEnd,   true);
 
   return trades.filter(t => {
-    if (filters.party !== 'ALL' && t.party !== filters.party) return false;
-    if (filters.dir   !== 'ALL' && t.direction !== filters.dir) return false;
-    if (min > 0 && (t.total || 0) < min) return false;
+    if (filters.parties.size > 0 && !filters.parties.has(t.party)) return false;
+    if (filters.dirs.size    > 0 && !filters.dirs.has(t.direction)) return false;
+    if (min !== null && (t.total || 0) < min) return false;
+    if (max !== null && (t.total || 0) > max) return false;
     if (kw) {
       const blob = ((t.name || '') + ' ' + t.wallet + ' ' + t.txhash).toLowerCase();
       if (!blob.includes(kw)) return false;
@@ -465,55 +468,285 @@ document.addEventListener('click', e => {
 $('#minUsd').addEventListener('input', e => {
   filters.minUsd = e.target.value;
   currentPage = 1;
+  updatePillLabels();
   render();
 });
-
-$('#timeStart').addEventListener('change', e => {
-  filters.timeStart = e.target.value;
+document.getElementById('maxUsd')?.addEventListener('input', e => {
+  filters.maxUsd = e.target.value;
   currentPage = 1;
-  render();
-});
-
-$('#timeEnd').addEventListener('change', e => {
-  filters.timeEnd = e.target.value;
-  currentPage = 1;
-  render();
-});
-
-$('#timeClear')?.addEventListener('click', () => {
-  $('#timeStart').value = '';
-  $('#timeEnd').value = '';
-  filters.timeStart = '';
-  filters.timeEnd = '';
-  currentPage = 1;
+  updatePillLabels();
   render();
 });
 
 $('#viewToggle').addEventListener('click', () => {
   viewMode = viewMode === 'feed' ? 'table' : 'feed';
-  $('#viewToggle').textContent = viewMode === 'feed' ? '📋 表格檢視' : '📰 Feed 檢視';
+  $('#viewToggle').textContent = viewMode === 'feed' ? '📋 表格' : '📰 Feed';
   render();
 });
 
-document.querySelectorAll('.filter-btn[data-party]').forEach(b => {
+// ─── Pill 下拉系統 ───────────────────────────────────────────
+function closeAllPills(except) {
+  document.querySelectorAll('.pill-dropdown.open').forEach(d => {
+    if (d !== except) d.classList.remove('open');
+  });
+}
+document.querySelectorAll('.pill-dropdown').forEach(dd => {
+  const trigger = dd.querySelector('.pill-trigger');
+  trigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = dd.classList.contains('open');
+    closeAllPills();
+    if (!wasOpen) {
+      dd.classList.add('open');
+      if (dd.dataset.pill === 'date') renderCalendar();
+    }
+  });
+  dd.querySelector('.pill-panel')?.addEventListener('click', e => e.stopPropagation());
+});
+document.addEventListener('click', () => closeAllPills());
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllPills(); });
+
+// 確認鈕：只是關閉面板（變動已即時生效）
+document.querySelectorAll('[data-confirm]').forEach(b => {
+  b.addEventListener('click', () => closeAllPills());
+});
+
+// 重設鈕：清除該 pill 的篩選
+document.querySelectorAll('[data-reset]').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn[data-party]').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    filters.party = b.dataset.party;
+    const which = b.dataset.reset;
+    if (which === 'party') {
+      filters.parties.clear();
+      document.querySelectorAll('[data-party-check]').forEach(c => c.checked = false);
+    } else if (which === 'dir') {
+      filters.dirs.clear();
+      document.querySelectorAll('[data-dir-check]').forEach(c => c.checked = false);
+    } else if (which === 'amount') {
+      filters.minUsd = '';
+      filters.maxUsd = '';
+      const minEl = document.getElementById('minUsd');
+      const maxEl = document.getElementById('maxUsd');
+      if (minEl) minEl.value = '';
+      if (maxEl) maxEl.value = '';
+    } else if (which === 'date') {
+      filters.timeStart = '';
+      filters.timeEnd   = '';
+      calRangeStart = null;
+      calRangeEnd   = null;
+      renderCalendar();
+    }
     currentPage = 1;
+    updatePillLabels();
     render();
   });
 });
 
-document.querySelectorAll('.filter-btn[data-dir]').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn[data-dir]').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    filters.dir = b.dataset.dir;
+// 多選 checkbox
+document.querySelectorAll('[data-party-check]').forEach(c => {
+  c.addEventListener('change', () => {
+    if (c.checked) filters.parties.add(c.value);
+    else           filters.parties.delete(c.value);
     currentPage = 1;
+    updatePillLabels();
     render();
   });
 });
+document.querySelectorAll('[data-dir-check]').forEach(c => {
+  c.addEventListener('change', () => {
+    if (c.checked) filters.dirs.add(c.value);
+    else           filters.dirs.delete(c.value);
+    currentPage = 1;
+    updatePillLabels();
+    render();
+  });
+});
+
+// ─── Pill 標籤更新 ───────────────────────────────────────────
+function updatePillLabels() {
+  // 政黨
+  const partyDD = document.querySelector('.pill-dropdown[data-pill="party"]');
+  const partyText = partyDD.querySelector('.pill-text');
+  if (filters.parties.size === 0) {
+    partyText.textContent = '政黨';
+    partyDD.classList.remove('has-value');
+  } else {
+    partyText.textContent = '政黨：' + [...filters.parties].join('+');
+    partyDD.classList.add('has-value');
+  }
+  // 方向
+  const dirDD = document.querySelector('.pill-dropdown[data-pill="dir"]');
+  const dirText = dirDD.querySelector('.pill-text');
+  if (filters.dirs.size === 0) {
+    dirText.textContent = '方向';
+    dirDD.classList.remove('has-value');
+  } else {
+    dirText.textContent = '方向：' + [...filters.dirs].join('+');
+    dirDD.classList.add('has-value');
+  }
+  // 金額
+  const amtDD = document.querySelector('.pill-dropdown[data-pill="amount"]');
+  const amtText = amtDD.querySelector('.pill-text');
+  const min = filters.minUsd, max = filters.maxUsd;
+  if (min === '' && max === '') {
+    amtText.textContent = '金額';
+    amtDD.classList.remove('has-value');
+  } else if (min !== '' && max === '') {
+    amtText.textContent = `金額 ≥ $${min}`;
+    amtDD.classList.add('has-value');
+  } else if (min === '' && max !== '') {
+    amtText.textContent = `金額 ≤ $${max}`;
+    amtDD.classList.add('has-value');
+  } else {
+    amtText.textContent = `金額 $${min}–$${max}`;
+    amtDD.classList.add('has-value');
+  }
+  // 日期
+  const dateDD = document.querySelector('.pill-dropdown[data-pill="date"]');
+  const dateText = dateDD.querySelector('.pill-text');
+  if (!filters.timeStart && !filters.timeEnd) {
+    dateText.textContent = '日期';
+    dateDD.classList.remove('has-value');
+  } else {
+    const s = filters.timeStart ? filters.timeStart.slice(5) : '…';
+    const e = filters.timeEnd   ? filters.timeEnd.slice(5)   : '…';
+    dateText.textContent = `日期：${s} → ${e}`;
+    dateDD.classList.add('has-value');
+  }
+  // 日曆面板上方的範圍顯示
+  const sLab = document.getElementById('calStartLabel');
+  const eLab = document.getElementById('calEndLabel');
+  if (sLab) {
+    if (filters.timeStart) { sLab.textContent = filters.timeStart; sLab.classList.remove('cal-label-empty'); }
+    else                   { sLab.textContent = '開始日期'; sLab.classList.add('cal-label-empty'); }
+  }
+  if (eLab) {
+    if (filters.timeEnd)   { eLab.textContent = filters.timeEnd; eLab.classList.remove('cal-label-empty'); }
+    else                   { eLab.textContent = '結束日期'; eLab.classList.add('cal-label-empty'); }
+  }
+}
+
+// ─── 雙月曆 ──────────────────────────────────────────────────
+let calCursor = new Date();         // 左側月份的「年月」
+calCursor.setDate(1);
+let calRangeStart = null;           // YYYY-MM-DD
+let calRangeEnd   = null;
+
+function ymd(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function renderCalendar() {
+  const wrap = document.getElementById('calWrap');
+  if (!wrap) return;
+  // 同步當前篩選值到 cal state
+  calRangeStart = filters.timeStart || null;
+  calRangeEnd   = filters.timeEnd   || null;
+
+  const left  = new Date(calCursor.getFullYear(), calCursor.getMonth(), 1);
+  const right = new Date(calCursor.getFullYear(), calCursor.getMonth() + 1, 1);
+  wrap.innerHTML = renderMonth(left, 'left') + renderMonth(right, 'right');
+
+  // 月份切換
+  wrap.querySelector('[data-cal-prev]')?.addEventListener('click', () => {
+    calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  wrap.querySelector('[data-cal-next]')?.addEventListener('click', () => {
+    calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + 1, 1);
+    renderCalendar();
+  });
+
+  // 點日期
+  wrap.querySelectorAll('.cal-day:not(.other)').forEach(el => {
+    el.addEventListener('click', () => {
+      const d = el.dataset.date;
+      if (!calRangeStart || (calRangeStart && calRangeEnd)) {
+        calRangeStart = d;
+        calRangeEnd   = null;
+      } else {
+        if (d < calRangeStart) {
+          calRangeEnd   = calRangeStart;
+          calRangeStart = d;
+        } else {
+          calRangeEnd = d;
+        }
+      }
+      filters.timeStart = calRangeStart || '';
+      filters.timeEnd   = calRangeEnd   || '';
+      currentPage = 1;
+      updatePillLabels();
+      renderCalendar();
+      render();
+    });
+  });
+}
+
+function renderMonth(monthDate, side) {
+  const y = monthDate.getFullYear();
+  const m = monthDate.getMonth();
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const dows = ['日','一','二','三','四','五','六'];
+
+  const firstDow = monthDate.getDay();              // 0~6
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const daysInPrev  = new Date(y, m, 0).getDate();
+
+  const today = ymd(new Date());
+
+  let cells = '';
+  // 上個月的補白
+  for (let i = firstDow - 1; i >= 0; i--) {
+    cells += `<div class="cal-day other">${daysInPrev - i}</div>`;
+  }
+  // 本月
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const cls = ['cal-day'];
+    if (dateStr === today) cls.push('today');
+    if (calRangeStart && calRangeEnd) {
+      if (dateStr === calRangeStart && dateStr === calRangeEnd) cls.push('range-only');
+      else if (dateStr === calRangeStart)                       cls.push('range-start');
+      else if (dateStr === calRangeEnd)                         cls.push('range-end');
+      else if (dateStr > calRangeStart && dateStr < calRangeEnd) cls.push('in-range');
+    } else if (calRangeStart && dateStr === calRangeStart) {
+      cls.push('range-only');
+    }
+    cells += `<div class="${cls.join(' ')}" data-date="${dateStr}">${d}</div>`;
+  }
+  // 下個月補白讓總格 = 6 列 * 7
+  const filled = firstDow + daysInMonth;
+  const trailing = (7 - (filled % 7)) % 7;
+  for (let i = 1; i <= trailing; i++) {
+    cells += `<div class="cal-day other">${i}</div>`;
+  }
+
+  const navPrev = side === 'left'
+    ? `<button class="cal-nav" type="button" data-cal-prev title="上個月">‹</button>`
+    : `<button class="cal-nav invisible" type="button">‹</button>`;
+  const navNext = side === 'right'
+    ? `<button class="cal-nav" type="button" data-cal-next title="下個月">›</button>`
+    : `<button class="cal-nav invisible" type="button">›</button>`;
+
+  return `
+    <div class="cal-month">
+      <div class="cal-month-header">
+        ${navPrev}
+        <span>${y} ${monthNames[m]}</span>
+        ${navNext}
+      </div>
+      <div class="cal-grid">
+        ${dows.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+        ${cells}
+      </div>
+    </div>
+  `;
+}
+
+// 初次標籤同步
+updatePillLabels();
 
 // ─── 主題切換 ─────────────────────────────────────────────────
 (function initTheme() {

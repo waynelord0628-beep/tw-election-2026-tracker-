@@ -136,102 +136,309 @@ header h1 {
 .row span { color: var(--text-mute); }
 .row b { color: var(--text); font-weight: 600; }
 
-/* ─── 篩選 ─── */
+/* ─── 篩選（OKLink 風格 pill + 下拉面板） ─── */
 .filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin: 0 auto 16px auto;
-  padding: 16px 20px;
+  padding: 14px 18px;
   background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px;
 }
-.search-wrap {
-  position: relative;
-  flex: 1 1 100%;
-  min-width: 240px;
+.filter-row {
   display: flex;
-  margin-bottom: 4px;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
 }
-#search {
-  flex: 1;
-  min-width: 0;
+.filter-row .spacer { flex: 1 1 auto; }
+
+/* ── 搜尋 pill ── */
+.search-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
   background: var(--bg-3);
-  border: 1.5px solid var(--border);
-  color: var(--text);
-  padding: 12px 44px 12px 16px;
-  border-radius: 10px;
-  font-size: 1.05em;
-  font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 14px 4px 18px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-#search::placeholder { color: var(--text-mute); font-weight: 400; }
-#search:hover { border-color: var(--text-mute); }
-#search:focus {
-  outline: none;
+.search-pill:focus-within {
   border-color: var(--link);
   box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
-  background: var(--bg-2);
 }
-#searchClear {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--bg-2);
+.search-pill .search-icon {
+  font-size: 1em;
   color: var(--text-mute);
-  border: 1px solid var(--border);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.search-pill input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 0.95em;
+  padding: 9px 0;
+}
+.search-pill input::placeholder { color: var(--text-mute); }
+.search-pill #searchClear {
+  background: transparent;
+  color: var(--text-mute);
+  border: none;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  font-size: 0.9em;
   cursor: pointer;
+  font-size: 0.9em;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
   padding: 0;
+  flex-shrink: 0;
+}
+.search-pill #searchClear:hover { background: var(--bg-2); color: var(--sell); }
+
+/* ── pill 下拉觸發鈕 ── */
+.pill-dropdown {
+  position: relative;
+}
+.pill-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.88em;
+  font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pill-trigger:hover { border-color: var(--link); color: var(--link); }
+.pill-dropdown.has-value .pill-trigger {
+  background: var(--link);
+  color: white;
+  border-color: var(--link);
+}
+.pill-trigger .pill-caret {
+  font-size: 0.95em;
+  opacity: 0.8;
+  transition: transform 0.15s;
+}
+.pill-dropdown.open .pill-trigger .pill-caret { transform: rotate(180deg); }
+.pill-dropdown.open .pill-trigger {
+  border-color: var(--link);
+}
+
+/* ── pill 下拉面板 ── */
+.pill-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  min-width: 220px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  padding: 14px;
+}
+.pill-dropdown.open .pill-panel { display: block; }
+
+/* checkbox 列表 */
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  min-width: 180px;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--text);
+  transition: background 0.12s;
+}
+.check-item:hover { background: var(--bg-3); }
+.check-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--link);
+  cursor: pointer;
+}
+.check-item span { font-weight: 500; }
+
+/* 金額輸入 */
+.amount-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.amount-inputs input {
+  width: 110px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  outline: none;
+  font-family: ui-monospace, monospace;
+}
+.amount-inputs input:focus { border-color: var(--link); }
+.amount-inputs .amount-sep { color: var(--text-mute); }
+
+/* 面板下方按鈕（重設 / 確認） */
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.btn-reset, .btn-confirm {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.15s;
 }
-#searchClear:hover {
-  background: var(--sell);
-  color: white;
-  border-color: var(--sell);
-  transform: translateY(-50%) scale(1.1);
+.btn-reset {
+  background: var(--bg-3);
+  color: var(--text-mute);
+  border: 1px solid var(--border);
 }
+.btn-reset:hover { color: var(--text); border-color: var(--text-mute); }
+.btn-confirm {
+  background: var(--link);
+  color: white;
+}
+.btn-confirm:hover { filter: brightness(1.1); }
+
+/* ── 日期 calendar 面板 ── */
+.pill-panel-calendar {
+  min-width: auto;
+  padding: 12px 14px;
+}
+.cal-range-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px 12px;
+  font-size: 0.9em;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.cal-range-display .cal-arrow { color: var(--text-mute); }
+.cal-range-display .cal-label-empty { color: var(--text-mute); }
+.cal-wrap {
+  display: flex;
+  gap: 16px;
+}
+.cal-month {
+  width: 220px;
+}
+.cal-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 8px;
+  font-size: 0.92em;
+  font-weight: 600;
+  color: var(--text);
+}
+.cal-nav {
+  background: transparent;
+  border: none;
+  color: var(--text-mute);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 1em;
+}
+.cal-nav:hover { background: var(--bg-3); color: var(--link); }
+.cal-nav.invisible { visibility: hidden; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  font-size: 0.78em;
+}
+.cal-grid .cal-dow {
+  text-align: center;
+  color: var(--text-mute);
+  padding: 4px 0;
+  font-weight: 600;
+}
+.cal-grid .cal-day {
+  text-align: center;
+  padding: 6px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text);
+  transition: background 0.1s;
+  user-select: none;
+}
+.cal-grid .cal-day:hover { background: var(--bg-3); }
+.cal-grid .cal-day.other { color: var(--text-mute); opacity: 0.35; cursor: default; }
+.cal-grid .cal-day.other:hover { background: transparent; }
+.cal-grid .cal-day.today { font-weight: 700; color: var(--link); }
+.cal-grid .cal-day.in-range { background: rgba(88,166,255,0.18); border-radius: 0; }
+.cal-grid .cal-day.range-start {
+  background: var(--link); color: white; font-weight: 700;
+  border-radius: 4px 0 0 4px;
+}
+.cal-grid .cal-day.range-end {
+  background: var(--link); color: white; font-weight: 700;
+  border-radius: 0 4px 4px 0;
+}
+.cal-grid .cal-day.range-only {
+  background: var(--link); color: white; font-weight: 700; border-radius: 4px;
+}
+
+/* ── ghost 按鈕（Feed/CSV）── */
+.ghost-btn {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ghost-btn:hover { color: var(--link); border-color: var(--link); }
+
+/* tag 點擊保留 */
 .tag.clickable { cursor: pointer; transition: all 0.15s; }
 .tag.clickable:hover {
   background: var(--link);
   color: white;
   transform: translateY(-1px);
-}
-.btn-group { display: flex; gap: 4px; }
-.filter-btn {
-  background: var(--bg-3);
-  border: 1px solid var(--border);
-  color: var(--text-mute);
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 600;
-  transition: all 0.15s;
-}
-.filter-btn:hover { color: var(--text); border-color: var(--link); }
-.filter-btn.active { background: var(--link); color: white; border-color: var(--link); }
-.filter-btn.dir.active[data-dir="BUY"]  { background: var(--buy);  border-color: var(--buy); }
-.filter-btn.dir.active[data-dir="SELL"] { background: var(--sell); border-color: var(--sell); }
-label { color: var(--text-mute); font-size: 0.9em; }
-label input {
-  background: var(--bg-3);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 6px;
-  border-radius: 4px;
-  margin-left: 4px;
 }
 
 /* ─── Feed ─── */
@@ -465,26 +672,7 @@ th.sortable:hover { color: var(--link); }
 .pg-ellipsis { padding: 4px 4px; color: var(--text-mute); font-size: 13px; }
 .pg-pages { display: flex; align-items: center; gap: 2px; }
 
-/* ─── 時間範圍篩選 ─── */
-.filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
-.time-range-row { margin-top: 4px; }
-.time-label {
-  display: flex; align-items: center; gap: 6px;
-  color: var(--text-mute); font-size: 0.88em;
-}
-.time-label input[type="datetime-local"] {
-  background: var(--bg-3);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 5px 8px;
-  border-radius: 6px;
-  font-size: 0.88em;
-  cursor: pointer;
-}
-.time-label input[type="datetime-local"]:focus {
-  outline: none;
-  border-color: var(--link);
-}
+/* ─── (legacy time-range styles removed; replaced by pill-dropdown calendar) ─── */
 
 #viewToggle { cursor: pointer; }
 
