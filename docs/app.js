@@ -296,7 +296,7 @@ document.querySelectorAll('.filter-btn[data-dir]').forEach(b => {
 
 // ─── 主題切換 ─────────────────────────────────────────────────
 (function initTheme() {
-  const saved = localStorage.getItem('theme') || 'dark';
+  const saved = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   const btn = document.getElementById('themeToggle');
   if (btn) {
