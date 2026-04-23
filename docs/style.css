@@ -510,11 +510,10 @@ header h1 {
 }
 .trade .name {
   color: var(--link);
-  font-weight: 700;
-  font-size: 1.05em;
+  font-weight: 400;
+  font-size: 1em;
   text-decoration: none;
 }
-.trade .name.unnamed { color: var(--text-mute); font-style: italic; font-weight: 400; }
 .trade .name:hover { text-decoration: underline; }
 .trade .addr-link,
 .trade .hash-link {
@@ -651,9 +650,8 @@ footer {
 .trades-table tr.kmt { border-left: 3px solid var(--kmt); }
 .trades-table tr.dpp { border-left: 3px solid var(--dpp); }
 .trades-table tr.tpp { border-left: 3px solid var(--tpp); }
-.trades-table .name { color: #4dabf7; font-weight: 600; text-decoration: none; }
+.trades-table .name { color: var(--link); font-weight: 400; text-decoration: none; }
 .trades-table .name:hover { text-decoration: underline; }
-.trades-table .unnamed { color: var(--text-mute); font-style: italic; font-size: 12px; }
 
 /* ─── 複製按鈕（通用） ─── */
 .cell-with-copy {
