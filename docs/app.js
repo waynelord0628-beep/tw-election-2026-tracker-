@@ -244,9 +244,9 @@ function renderFeed(filtered) {
           <span class="badge ${dirClass}">${dirIcon}</span>
         </div>
         <div class="info">
-          ${nameHtml}
-          <div class="addr"><a href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${t.wallet}</a></div>
-          <div class="hash"><a href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></div>
+          <div class="info-row"><span class="info-label">用戶名稱:</span> ${nameHtml}</div>
+          <div class="info-row"><span class="info-label">用戶地址:</span> <a class="addr-link" href="https://polygonscan.com/address/${t.wallet}" target="_blank" title="${t.wallet}">${t.wallet}</a></div>
+          <div class="info-row"><span class="info-label">Tx Hash:</span> <a class="hash-link" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></div>
         </div>
         <div class="amount">
           <div class="shares">${fmt(t.shares, 2)} shares</div>

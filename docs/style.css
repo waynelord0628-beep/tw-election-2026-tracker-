@@ -183,6 +183,21 @@ label input {
 .badge.dir-sell  { background: var(--sell); color: white; }
 
 .trade .info { min-width: 0; }
+.trade .info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 0.85em;
+  flex-wrap: wrap;
+}
+.trade .info-row:last-child { margin-bottom: 0; }
+.trade .info-label {
+  color: var(--text-mute);
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 64px;
+}
 .trade .name {
   color: var(--link);
   font-weight: 700;
@@ -191,24 +206,17 @@ label input {
 }
 .trade .name.unnamed { color: var(--text-mute); font-style: italic; font-weight: 400; }
 .trade .name:hover { text-decoration: underline; }
-.trade .addr {
-  color: var(--text-mute);
+.trade .addr-link,
+.trade .hash-link {
+  color: var(--text);
   font-family: monospace;
-  font-size: 0.75em;
-  margin-top: 2px;
+  font-size: 0.95em;
+  text-decoration: none;
   word-break: break-all;
   overflow-wrap: anywhere;
 }
-.trade .addr a { color: inherit; text-decoration: none; }
-.trade .addr a:hover { color: var(--link); }
-.trade .hash {
-  color: var(--text-mute);
-  font-family: monospace;
-  font-size: 0.7em;
-  margin-top: 2px;
-}
-.trade .hash a { color: inherit; text-decoration: none; }
-.trade .hash a:hover { color: var(--gold); }
+.trade .addr-link:hover { color: var(--link); }
+.trade .hash-link:hover { color: var(--gold); }
 
 .trade .amount {
   text-align: right;
@@ -389,9 +397,11 @@ body {
   .trade .badges { flex-wrap: wrap; gap: 4px; }
   .trade .info { width: 100%; min-width: 0; }
   .trade .name { font-size: 1em; }
-  .trade .addr,
-  .trade .hash {
-    font-size: 0.68em;
+  .trade .info-row { font-size: 0.78em; gap: 4px; }
+  .trade .info-label { min-width: 56px; font-size: 0.95em; }
+  .trade .addr-link,
+  .trade .hash-link {
+    font-size: 0.92em;
     word-break: break-all;
     overflow-wrap: anywhere;
     line-height: 1.4;
