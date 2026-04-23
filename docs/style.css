@@ -53,6 +53,17 @@ body {
 
 .container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 0 20px; }
 
+/* 寬螢幕：只把搜尋／篩選列往右推 */
+@media (min-width: 1400px) {
+  .filters.container { margin-left: calc(50% - 500px); margin-right: auto; }
+}
+@media (min-width: 1700px) {
+  .filters.container { margin-left: calc(50% - 400px); }
+}
+@media (min-width: 2000px) {
+  .filters.container { margin-left: calc(50% - 300px); }
+}
+
 /* ─── 標題 ─── */
 header {
   background: var(--header-grad);
