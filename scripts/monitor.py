@@ -1096,10 +1096,10 @@ def main(poll_interval: int = POLL_INTERVAL):
     while True:
         try:
             cycle += 1
-            # 主來源：Polymarket data-api（即時、不漏單、含名稱）
+            # 主來源：Polymarket data-api（即時、不漏單、含名稱、takerOnly 去重）
             new_count = poll_data_api(conn)
-            # 備援：Blockscout 也輪一輪，撿任何 data-api 沒回的（少見但保險）
-            new_count += poll_once(conn, usdc_cache)
+            # 備援關閉：Blockscout 會把 maker/taker 兩端都灌入，破壞 takerOnly 去重
+            # new_count += poll_once(conn, usdc_cache)
 
             if new_count > 0:
                 # 平常：只更新「最新動態」獨立小檔（毫秒級、永不卡）
