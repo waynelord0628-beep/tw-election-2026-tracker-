@@ -294,6 +294,23 @@ document.querySelectorAll('.filter-btn[data-dir]').forEach(b => {
   });
 });
 
+// ─── 主題切換 ─────────────────────────────────────────────────
+(function initTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeToggle');
+  if (btn) {
+    btn.textContent = saved === 'light' ? '☀️' : '🌙';
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      btn.textContent = next === 'light' ? '☀️' : '🌙';
+    });
+  }
+})();
+
 // ─── 啟動 ─────────────────────────────────────────────────────
 loadData();
 setInterval(loadData, REFRESH_INTERVAL);

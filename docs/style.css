@@ -15,6 +15,32 @@
   --sell:      #f85149;
   --link:      #58a6ff;
   --gold:      #f0b400;
+  --header-grad: linear-gradient(135deg, #1a2230 0%, #0f1419 100%);
+}
+
+[data-theme="light"] {
+  --bg:        #f6f8fa;
+  --bg-2:      #ffffff;
+  --bg-3:      #eef2f6;
+  --text:      #1f2328;
+  --text-mute: #656d76;
+  --border:    #d0d7de;
+  --kmt:       #002868;
+  --dpp:       #1B9431;
+  --tpp:       #28C8C8;
+  --buy:       #1a7f37;
+  --sell:      #cf222e;
+  --link:      #0969da;
+  --gold:      #9a6700;
+  --header-grad: linear-gradient(135deg, #ffffff 0%, #eef2f6 100%);
+}
+
+/* 標題漸層在淺色模式改用實心色，避免看不見 */
+[data-theme="light"] header h1 {
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+  color: var(--text);
 }
 
 body {
@@ -29,10 +55,35 @@ body {
 
 /* ─── 標題 ─── */
 header {
-  background: linear-gradient(135deg, #1a2230 0%, #0f1419 100%);
+  background: var(--header-grad);
   border-bottom: 1px solid var(--border);
   padding: 24px 0;
   margin-bottom: 24px;
+}
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.theme-toggle {
+  background: var(--bg-3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.25em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  background: var(--bg-2);
+  transform: scale(1.05);
 }
 header h1 {
   font-size: 1.8em;
