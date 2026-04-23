@@ -900,6 +900,13 @@ def main(poll_interval: int = POLL_INTERVAL):
     web_n = export_web_data(conn)
     if web_n is not None:
         print(f"[Web ] 初始 data.json 已產生：{web_n} 筆 → {WEB_DATA_PATH}")
+    # 啟動時強制 push 一次，更新網站「最後更新」時間戳，並驗證 git auth
+    global _last_git_push
+    _last_git_push = 0  # 解除節流
+    if git_push_data(0):
+        print(f"[Git ] 初始 push 成功")
+    else:
+        print(f"[Git ] 初始 push 失敗或被節流（檢查 git auth）")
     print("-" * 65)
     print(f"[監控中] 每 {poll_interval} 秒輪詢一次 Blockscout...")
     print()
