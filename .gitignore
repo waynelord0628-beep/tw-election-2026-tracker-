@@ -1,37 +1,59 @@
-# 大檔 / 本地資料庫
+# --- Sensitive / local helper scripts (must NEVER be committed) ---
+_ssh_*.py
+_inspect_*.py
+.env
+.env.*
+*.pem
+*.key
+
+# --- Local data / caches / logs ---
+*.log
+*.db
+*.sqlite
+*.sqlite3
+backups_*.sqlite
 monitor.db
-monitor.db-journal
-*.xlsx
-*.xlsm
-~$*
+monitor.err.log
+monitor.log
 
-# 注意：usdc_cache.json 與 wallet_names.json 故意 commit
-# 讓 VPS 部署時不用重抓 API（不含敏感資料）
+# --- One-off test outputs ---
+dpp_trades.json
+kmt_yes_transfers.json
+latest_web.json
+tx_partial.json
+tx_transfers.json
+scripts/usdc_cache.json
 
-# 中間 JSON
-enriched_missing_trades.json
-missing_onchain_txs.json
-scripts/eoa_proposer_analysis.json
-scripts/event.txt
-scripts/check_result.txt
-
-# Python
+# --- Python ---
 __pycache__/
 *.pyc
 *.pyo
 .venv/
 venv/
+.pytest_cache/
 
-# 編輯器
+# --- Editor / OS ---
 .vscode/
 .idea/
+*.swp
 .DS_Store
 Thumbs.db
 
-# 個人調查資料夾與筆記
-@*/
-賭博網站.txt
+# --- Excel auto-generated ---
+~$*.xlsx
+~$*.xlsm
+*.xlsx
+*.xlsm
+監控_即時_最新動態.xlsx
 
-# 但網站要 push（明確包含）
-!docs/
-!docs/data.json
+# --- Local research / analysis (per-wallet folders, txt notes) ---
+@*/
+*.txt
+clean_event.xlsx
+scripts/check_result.txt
+scripts/event.txt
+scripts/enriched_missing_trades.json
+scripts/eoa_proposer_analysis.json
+scripts/missing_onchain_txs.json
+scripts/monitor.db-journal
+賭博網站.txt
