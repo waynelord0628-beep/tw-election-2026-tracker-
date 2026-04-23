@@ -659,6 +659,15 @@ footer {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;        /* 防止內容斷行讓複製鈕跑下去 */
+  max-width: 100%;
+  min-width: 0;
+}
+.cell-with-copy > a,
+.cell-with-copy > span:not(.copy-btn) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .copy-btn {
   display: inline-flex;
@@ -673,6 +682,7 @@ footer {
   color: var(--text-mute);
   cursor: pointer;
   opacity: 0.45;
+  flex-shrink: 0;             /* 永不被擠縮 */
   transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
 }
 .copy-btn:hover {
@@ -765,6 +775,12 @@ body {
   .container { padding: 0 12px; }
   .stats { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
   .card { padding: 12px; }
+  /* 窄螢幕表格：縮小 padding、字體、複製鈕 */
+  .trades-table th, .trades-table td { padding: 8px 6px; font-size: 12px; }
+  .trades-table a.mono, .trades-table .name { font-size: 12px; }
+  .copy-btn { width: 18px; height: 18px; }
+  .copy-btn svg { width: 11px; height: 11px; }
+  .cell-with-copy { gap: 2px; }
 }
 
 /* 手機 ≤ 768px */
