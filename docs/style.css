@@ -197,6 +197,7 @@ label input {
   font-size: 0.75em;
   margin-top: 2px;
   word-break: break-all;
+  overflow-wrap: anywhere;
 }
 .trade .addr a { color: inherit; text-decoration: none; }
 .trade .addr a:hover { color: var(--link); }
@@ -239,7 +240,6 @@ footer {
   .trade .amount { text-align: left; }
   header h1 { font-size: 1.3em; }
 }
-
 /* ═══════ 查詢摘要卡 ═══════ */
 .query-summary {
   background: linear-gradient(135deg, #1a2230 0%, #232d3f 100%);
@@ -309,3 +309,94 @@ footer {
 .table-foot { padding: 12px; text-align: center; color: var(--text-mute); font-size: 12px; }
 
 #viewToggle { cursor: pointer; }
+
+/* ═══════════════ 手機板響應式 ═══════════════ */
+
+/* 平板 ≤ 1024px */
+@media (max-width: 1024px) {
+  .container { padding: 0 12px; }
+  .stats { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .card { padding: 12px; }
+}
+
+/* 手機 ≤ 768px */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  .container { padding: 0 10px; }
+
+  /* 標題 */
+  header { padding: 14px 0; margin-bottom: 14px; }
+  header h1 { font-size: 1.15em; line-height: 1.3; }
+  .meta { font-size: 0.8em; }
+  .meta .dot { margin: 0 4px; }
+  .auto-refresh { display: block; margin-top: 4px; }
+
+  /* 統計卡 1 欄 */
+  .stats { grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
+  .card { padding: 10px 12px; border-top-width: 2px; }
+  .party-tag { font-size: 1em; margin-bottom: 8px; padding-bottom: 6px; }
+  .row { font-size: 0.88em; padding: 2px 0; }
+
+  /* 篩選列 */
+  .filters { padding: 8px; gap: 8px; }
+  #search { width: 100%; min-width: 0; flex-basis: 100%; font-size: 16px; padding: 10px; }
+  .btn-group { width: 100%; flex-wrap: wrap; }
+  .filter-btn { flex: 1; min-width: 60px; padding: 8px 6px; font-size: 0.82em; }
+  label { width: 100%; display: flex; align-items: center; gap: 8px; }
+  label input { flex: 1; }
+
+  /* Feed 卡片：地址換行 */
+  .feed { gap: 6px; }
+  .trade { padding: 10px 12px; gap: 6px; grid-template-columns: 1fr; }
+  .trade .time { font-size: 0.75em; }
+  .trade .badges { flex-wrap: wrap; }
+  .trade .info { width: 100%; }
+  .trade .name { font-size: 1em; }
+  .trade .addr,
+  .trade .hash {
+    font-size: 0.7em;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+  .trade .amount {
+    text-align: left;
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+  .trade .amount .shares { font-size: 0.95em; }
+  .trade .amount .price  { margin-top: 0; }
+  .trade .amount .total  { margin-top: 0; font-size: 1.05em; margin-left: auto; }
+
+  /* 查詢摘要 */
+  .query-summary { padding: 12px; }
+  .qtitle { font-size: 1em; }
+  .qmeta { font-size: 0.78em; line-height: 1.6; }
+  .qmeta b { display: inline-block; }
+  .qparties { grid-template-columns: 1fr; gap: 8px; }
+  .qcard { padding: 10px; }
+  .qrow { font-size: 0.82em; }
+  .tag { font-size: 0.75em; padding: 1px 6px; }
+
+  /* 表格：水平捲動 */
+  .feed { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .trades-table {
+    font-size: 11px;
+    min-width: 720px;  /* 強制寬度，超出就橫向捲 */
+  }
+  .trades-table th,
+  .trades-table td { padding: 6px 4px; }
+  .trades-table td.time-cell { font-size: 10px; }
+
+  /* footer */
+  footer { padding: 14px 10px; font-size: 0.75em; line-height: 1.5; }
+}
+
+/* 小手機 ≤ 380px */
+@media (max-width: 380px) {
+  header h1 { font-size: 1em; }
+  .filter-btn { font-size: 0.75em; padding: 6px 4px; }
+  .trade .badges .badge { font-size: 0.7em; padding: 2px 5px; }
+}
