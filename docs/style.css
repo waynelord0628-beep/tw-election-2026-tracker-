@@ -589,6 +589,28 @@ footer {
 .tag.mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
 .tag a, a.tag { color: var(--link); text-decoration: none; }
 
+/* ── 淺色主題覆寫 ── */
+[data-theme="light"] .query-summary {
+  background: linear-gradient(135deg, #ffffff 0%, #f6f8fa 100%);
+  border: 1px solid #d4a72c;
+  box-shadow: 0 2px 12px rgba(154, 103, 0, 0.08);
+}
+[data-theme="light"] .qheader { border-bottom-color: #d0d7de; }
+[data-theme="light"] .qmeta { color: #57606a; }
+[data-theme="light"] .qmeta b { color: #1f2328; }
+[data-theme="light"] .qmeta .qsep { color: rgba(0,0,0,0.2); }
+[data-theme="light"] .tag {
+  background: #eef2f6;
+  color: #1f2328;
+  border: 1px solid #d0d7de;
+}
+[data-theme="light"] .qcard {
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-left-width: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
 .qparties { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .qcard {
   background: var(--bg);
