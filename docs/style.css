@@ -51,7 +51,7 @@ body {
   min-height: 100vh;
 }
 
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 0 20px; }
 
 /* ─── 標題 ─── */
 header {
@@ -413,6 +413,78 @@ footer {
 }
 .trades-table a.mono:hover { text-decoration: underline; }
 .table-foot { padding: 12px; text-align: center; color: var(--text-mute); font-size: 12px; }
+
+/* ─── 排序箭頭 ─── */
+th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+th.sortable:hover { color: var(--link); }
+.sort-icon { margin-left: 4px; font-size: 0.85em; }
+.sort-icon.muted { opacity: 0.3; }
+.sort-icon.active { color: var(--link); }
+
+/* ─── 分頁列 ─── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-2);
+  border-radius: 0 0 8px 8px;
+  font-size: 13px;
+}
+.pg-left { display: flex; align-items: center; gap: 8px; color: var(--text-mute); }
+.pg-left select {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pg-info { color: var(--text-mute); font-size: 12px; }
+.pg-nav { display: flex; align-items: center; gap: 2px; }
+.pg-btn {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 30px;
+  text-align: center;
+  transition: all 0.12s;
+}
+.pg-btn:hover:not(:disabled) { background: var(--link); color: white; border-color: var(--link); }
+.pg-btn:disabled { opacity: 0.3; cursor: default; }
+.pg-btn.active { background: var(--link); color: white; border-color: var(--link); }
+.pg-ellipsis { padding: 4px 4px; color: var(--text-mute); font-size: 13px; }
+.pg-pages { display: flex; align-items: center; gap: 2px; }
+
+/* ─── 時間範圍篩選 ─── */
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
+.time-range-row { margin-top: 4px; }
+.time-label {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-mute); font-size: 0.88em;
+}
+.time-label input[type="datetime-local"] {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.88em;
+  cursor: pointer;
+}
+.time-label input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--link);
+}
 
 #viewToggle { cursor: pointer; }
 

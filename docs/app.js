@@ -6,11 +6,21 @@ let allTrades = [];
 let prevHashes = new Set();
 let viewMode = 'table';  // 'feed' | 'table'，預設表格
 let filters = {
-  party:   'ALL',
-  dir:     'ALL',
-  search:  '',
-  minUsd:  0,
+  party:     'ALL',
+  dir:       'ALL',
+  search:    '',
+  minUsd:    0,
+  timeStart: '',  // ISO string UTC+8 input value
+  timeEnd:   '',
 };
+
+// 排序狀態：col = 'timestamp' | 'shares' | 'price' | 'total'
+let sortCol = 'timestamp';
+let sortDir = 'desc';  // 'asc' | 'desc'
+
+// 分頁狀態
+let pageSize = 50;
+let currentPage = 1;
 
 const $ = sel => document.querySelector(sel);
 
@@ -37,6 +47,13 @@ function localTime(isoStr) {
     const tw = new Date(d.getTime() + 8 * 3600 * 1000);
     return tw.toISOString().slice(0, 19).replace('T', ' ');
   } catch { return isoStr; }
+}
+
+// 把 datetime-local 輸入值（UTC+8）轉成 UTC 毫秒數
+function tw8ToMs(val) {
+  if (!val) return null;
+  // val 格式 "2026-04-24T12:00"，視為 UTC+8
+  return new Date(val + ':00+08:00').getTime();
 }
 
 function escapeHtml(s) {
@@ -76,6 +93,9 @@ function renderStats(s) {
 function applyFilters(trades) {
   const kw = filters.search.toLowerCase().trim();
   const min = +filters.minUsd || 0;
+  const tsStart = tw8ToMs(filters.timeStart);
+  const tsEnd   = tw8ToMs(filters.timeEnd);
+
   return trades.filter(t => {
     if (filters.party !== 'ALL' && t.party !== filters.party) return false;
     if (filters.dir   !== 'ALL' && t.direction !== filters.dir) return false;
@@ -84,8 +104,51 @@ function applyFilters(trades) {
       const blob = ((t.name || '') + ' ' + t.wallet + ' ' + t.txhash).toLowerCase();
       if (!blob.includes(kw)) return false;
     }
+    if (tsStart !== null) {
+      const tms = new Date(t.timestamp).getTime();
+      if (tms < tsStart) return false;
+    }
+    if (tsEnd !== null) {
+      const tms = new Date(t.timestamp).getTime();
+      if (tms > tsEnd) return false;
+    }
     return true;
   });
+}
+
+// ─── 排序 ─────────────────────────────────────────────────────
+function applySorting(rows) {
+  const sorted = [...rows];
+  sorted.sort((a, b) => {
+    let va, vb;
+    if (sortCol === 'timestamp') {
+      va = new Date(a.timestamp).getTime();
+      vb = new Date(b.timestamp).getTime();
+    } else {
+      va = a[sortCol] || 0;
+      vb = b[sortCol] || 0;
+    }
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+  return sorted;
+}
+
+function setSort(col) {
+  if (sortCol === col) {
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    sortCol = col;
+    sortDir = col === 'timestamp' ? 'desc' : 'desc';
+  }
+  currentPage = 1;
+  render();
+}
+
+function sortIcon(col) {
+  if (sortCol !== col) return '<span class="sort-icon muted">⇅</span>';
+  return sortDir === 'desc'
+    ? '<span class="sort-icon active">↓</span>'
+    : '<span class="sort-icon active">↑</span>';
 }
 
 // ─── 主渲染 ───────────────────────────────────────────────────
@@ -94,7 +157,6 @@ function render() {
   const isQuery = filters.search.trim().length > 0;
   const summaryEl = $('#querySummary');
 
-  // 查詢模式 → 顯示統計卡 + 強制表格
   if (isQuery) {
     summaryEl.style.display = '';
     renderQuerySummary(filtered);
@@ -182,18 +244,31 @@ function renderTable(rows) {
     feed.innerHTML = '<div class="empty">無符合資料</div>';
     return;
   }
-  const list = rows.slice(0, 1000);
+
+  const sorted = applySorting(rows);
+  const totalRows = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * pageSize;
+  const list  = sorted.slice(start, start + pageSize);
+
+  // 可點擊欄位標頭
+  const thTime   = `<th class="sortable" data-sort="timestamp">時間 (UTC+8) ${sortIcon('timestamp')}</th>`;
+  const thShares = `<th class="num sortable" data-sort="shares">Shares ${sortIcon('shares')}</th>`;
+  const thPrice  = `<th class="num sortable" data-sort="price">價格 ${sortIcon('price')}</th>`;
+  const thTotal  = `<th class="num sortable" data-sort="total">總金額 ${sortIcon('total')}</th>`;
+
   const head = `
     <table class="trades-table">
       <thead>
         <tr>
-          <th>時間 (UTC+8)</th>
+          ${thTime}
           <th>政黨</th>
           <th>方向</th>
           <th>標的</th>
-          <th class="num">Shares</th>
-          <th class="num">價格</th>
-          <th class="num">總金額</th>
+          ${thShares}
+          ${thPrice}
+          ${thTotal}
           <th>名稱</th>
           <th>錢包</th>
           <th>Hash</th>
@@ -201,6 +276,7 @@ function renderTable(rows) {
       </thead>
       <tbody>
   `;
+
   const body = list.map(t => `
     <tr class="${t.party.toLowerCase()}">
       <td class="time-cell">${localTime(t.timestamp)}</td>
@@ -217,8 +293,88 @@ function renderTable(rows) {
       <td><a class="mono" href="https://polygonscan.com/tx/${t.txhash}" target="_blank" title="${t.txhash}">${shortHash(t.txhash)}</a></td>
     </tr>
   `).join('');
-  feed.innerHTML = head + body + `</tbody></table>
-    <div class="table-foot">顯示 ${list.length} / ${rows.length} 筆${rows.length > 1000 ? '（前 1000 筆）' : ''}</div>`;
+
+  // 分頁控制列
+  const pagination = buildPagination(totalRows, totalPages);
+
+  feed.innerHTML = head + body + `</tbody></table>${pagination}`;
+
+  // 排序標頭事件
+  feed.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => setSort(th.dataset.sort));
+  });
+
+  // 分頁事件
+  bindPaginationEvents(totalPages);
+}
+
+// ─── 分頁列 HTML ──────────────────────────────────────────────
+function buildPagination(totalRows, totalPages) {
+  const pageSizeOptions = [10, 20, 50, 100].map(n =>
+    `<option value="${n}" ${pageSize === n ? 'selected' : ''}>${n}</option>`
+  ).join('');
+
+  const btnFirst = `<button class="pg-btn" id="pgFirst" ${currentPage === 1 ? 'disabled' : ''} title="第一頁">«</button>`;
+  const btnPrev  = `<button class="pg-btn" id="pgPrev"  ${currentPage === 1 ? 'disabled' : ''} title="上一頁">‹</button>`;
+  const btnNext  = `<button class="pg-btn" id="pgNext"  ${currentPage === totalPages ? 'disabled' : ''} title="下一頁">›</button>`;
+  const btnLast  = `<button class="pg-btn" id="pgLast"  ${currentPage === totalPages ? 'disabled' : ''} title="最後一頁">»</button>`;
+
+  const start = (currentPage - 1) * pageSize + 1;
+  const end   = Math.min(currentPage * pageSize, totalRows);
+
+  return `
+    <div class="pagination">
+      <div class="pg-left">
+        每頁顯示：<select id="pgSize">${pageSizeOptions}</select>
+        <span class="pg-info">${start}–${end} / 共 ${totalRows} 筆</span>
+      </div>
+      <div class="pg-nav">
+        ${btnFirst}${btnPrev}
+        <span class="pg-pages">${buildPageButtons(totalPages)}</span>
+        ${btnNext}${btnLast}
+      </div>
+    </div>
+  `;
+}
+
+function buildPageButtons(totalPages) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+      .map(p => `<button class="pg-btn pg-num ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`)
+      .join('');
+  }
+  // 顯示首尾 + 當前頁附近
+  const pages = new Set([1, totalPages, currentPage,
+    currentPage - 1, currentPage + 1,
+    currentPage - 2, currentPage + 2]);
+  const sorted = [...pages].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+  let html = '';
+  let prev = 0;
+  for (const p of sorted) {
+    if (p - prev > 1) html += `<span class="pg-ellipsis">…</span>`;
+    html += `<button class="pg-btn pg-num ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`;
+    prev = p;
+  }
+  return html;
+}
+
+function bindPaginationEvents(totalPages) {
+  const feed = $('#feed');
+  feed.querySelector('#pgSize')?.addEventListener('change', e => {
+    pageSize = +e.target.value;
+    currentPage = 1;
+    render();
+  });
+  feed.querySelector('#pgFirst')?.addEventListener('click', () => { currentPage = 1; render(); });
+  feed.querySelector('#pgPrev')?.addEventListener('click',  () => { if (currentPage > 1) { currentPage--; render(); } });
+  feed.querySelector('#pgNext')?.addEventListener('click',  () => { if (currentPage < totalPages) { currentPage++; render(); } });
+  feed.querySelector('#pgLast')?.addEventListener('click',  () => { currentPage = totalPages; render(); });
+  feed.querySelectorAll('.pg-num').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPage = +btn.dataset.page;
+      render();
+    });
+  });
 }
 
 // ─── Feed 檢視（卡片） ───────────────────────────────────────
@@ -265,6 +421,7 @@ function renderFeed(filtered) {
 $('#search').addEventListener('input', e => {
   filters.search = e.target.value;
   $('#searchClear').style.display = e.target.value ? '' : 'none';
+  currentPage = 1;
   render();
 });
 
@@ -272,6 +429,7 @@ $('#searchClear')?.addEventListener('click', () => {
   $('#search').value = '';
   filters.search = '';
   $('#searchClear').style.display = 'none';
+  currentPage = 1;
   render();
   $('#search').focus();
 });
@@ -285,12 +443,35 @@ document.addEventListener('click', e => {
   $('#search').value = q;
   filters.search = q;
   $('#searchClear').style.display = '';
+  currentPage = 1;
   render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 $('#minUsd').addEventListener('input', e => {
   filters.minUsd = e.target.value;
+  currentPage = 1;
+  render();
+});
+
+$('#timeStart').addEventListener('change', e => {
+  filters.timeStart = e.target.value;
+  currentPage = 1;
+  render();
+});
+
+$('#timeEnd').addEventListener('change', e => {
+  filters.timeEnd = e.target.value;
+  currentPage = 1;
+  render();
+});
+
+$('#timeClear')?.addEventListener('click', () => {
+  $('#timeStart').value = '';
+  $('#timeEnd').value = '';
+  filters.timeStart = '';
+  filters.timeEnd = '';
+  currentPage = 1;
   render();
 });
 
@@ -305,6 +486,7 @@ document.querySelectorAll('.filter-btn[data-party]').forEach(b => {
     document.querySelectorAll('.filter-btn[data-party]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     filters.party = b.dataset.party;
+    currentPage = 1;
     render();
   });
 });
@@ -314,6 +496,7 @@ document.querySelectorAll('.filter-btn[data-dir]').forEach(b => {
     document.querySelectorAll('.filter-btn[data-dir]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     filters.dir = b.dataset.dir;
+    currentPage = 1;
     render();
   });
 });
@@ -363,7 +546,6 @@ function downloadCsv() {
     alert('目前篩選結果為空，無資料可下載');
     return;
   }
-  // BOM + UTF-8 讓 Excel 正常顯示中文
   const csv = '\uFEFF' + tradesToCsv(filtered);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
