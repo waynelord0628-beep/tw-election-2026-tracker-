@@ -149,9 +149,11 @@ function renderQuerySummary(rows) {
     </div>
   `).join('');
 
-  const namesList = [...names].slice(0, 5).map(n => `<span class="tag">${escapeHtml(n)}</span>`).join(' ');
+  const namesList = [...names].slice(0, 5).map(n =>
+    `<span class="tag clickable" data-q="${escapeHtml(n)}" title="點擊只看此用戶">${escapeHtml(n)}</span>`
+  ).join(' ');
   const walletList = [...wallets].slice(0, 3).map(w =>
-    `<a href="https://polygonscan.com/address/${w}" target="_blank" class="tag mono">${shortAddr(w)}</a>`
+    `<span class="tag mono clickable" data-q="${w}" title="點擊只看此錢包">${shortAddr(w)}</span>`
   ).join(' ');
 
   el.innerHTML = `
@@ -262,7 +264,29 @@ function renderFeed(filtered) {
 // ─── 事件綁定 ─────────────────────────────────────────────────
 $('#search').addEventListener('input', e => {
   filters.search = e.target.value;
+  $('#searchClear').style.display = e.target.value ? '' : 'none';
   render();
+});
+
+$('#searchClear')?.addEventListener('click', () => {
+  $('#search').value = '';
+  filters.search = '';
+  $('#searchClear').style.display = 'none';
+  render();
+  $('#search').focus();
+});
+
+// 點擊查詢統計區的標籤 → 改用該值精確查詢
+document.addEventListener('click', e => {
+  const tag = e.target.closest('.tag.clickable');
+  if (!tag) return;
+  const q = tag.dataset.q;
+  if (!q) return;
+  $('#search').value = q;
+  filters.search = q;
+  $('#searchClear').style.display = '';
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 $('#minUsd').addEventListener('input', e => {

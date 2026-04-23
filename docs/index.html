@@ -48,7 +48,10 @@
   </section>
 
   <nav class="filters container">
-    <input id="search" type="text" placeholder="🔍 輸入名稱 / 錢包地址 / Hash → 查詢模式（顯示統計 + 表格）">
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="🔍 輸入名稱 / 錢包地址 / Hash → 查詢模式（顯示統計 + 表格）">
+      <button id="searchClear" type="button" title="清除搜尋" style="display:none;" aria-label="清除">✕</button>
+    </div>
     <div class="btn-group">
       <button class="filter-btn active" data-party="ALL">全部</button>
       <button class="filter-btn" data-party="KMT">KMT</button>

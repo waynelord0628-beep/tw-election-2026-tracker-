@@ -148,17 +148,53 @@ header h1 {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
-#search {
+.search-wrap {
+  position: relative;
   flex: 1;
   min-width: 240px;
+  display: flex;
+}
+#search {
+  flex: 1;
+  min-width: 0;
   background: var(--bg-3);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 12px;
+  padding: 8px 36px 8px 12px;
   border-radius: 6px;
   font-size: 0.95em;
 }
 #search:focus { outline: none; border-color: var(--link); }
+#searchClear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-2);
+  color: var(--text-mute);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 0.85em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+#searchClear:hover {
+  background: var(--sell);
+  color: white;
+  border-color: var(--sell);
+}
+.tag.clickable { cursor: pointer; transition: all 0.15s; }
+.tag.clickable:hover {
+  background: var(--link);
+  color: white;
+  transform: translateY(-1px);
+}
 .btn-group { display: flex; gap: 4px; }
 .filter-btn {
   background: var(--bg-3);
