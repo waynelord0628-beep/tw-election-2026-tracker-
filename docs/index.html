@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 台灣地方選舉 · Polymarket 即時下注監控</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>2026 台灣地方選舉 · Polymarket 即時下注</h1>
+      <div class="meta">
+        <span id="lastUpdate">載入中…</span>
+        <span class="dot">•</span>
+        <span id="totalCount">0</span> 筆累計
+        <span class="dot">•</span>
+        <span class="auto-refresh">每 30 秒自動更新</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats container">
+    <div class="card kmt">
+      <div class="party-tag">KMT 國民黨</div>
+      <div class="row"><span>交易筆數</span><b id="kmtCount">-</b></div>
+      <div class="row"><span>BUY shares</span><b id="kmtBuy">-</b></div>
+      <div class="row"><span>SELL shares</span><b id="kmtSell">-</b></div>
+      <div class="row"><span>總交易量 USD</span><b id="kmtVol">-</b></div>
+    </div>
+    <div class="card dpp">
+      <div class="party-tag">DPP 民進黨</div>
+      <div class="row"><span>交易筆數</span><b id="dppCount">-</b></div>
+      <div class="row"><span>BUY shares</span><b id="dppBuy">-</b></div>
+      <div class="row"><span>SELL shares</span><b id="dppSell">-</b></div>
+      <div class="row"><span>總交易量 USD</span><b id="dppVol">-</b></div>
+    </div>
+    <div class="card tpp">
+      <div class="party-tag">TPP 民眾黨</div>
+      <div class="row"><span>交易筆數</span><b id="tppCount">-</b></div>
+      <div class="row"><span>BUY shares</span><b id="tppBuy">-</b></div>
+      <div class="row"><span>SELL shares</span><b id="tppSell">-</b></div>
+      <div class="row"><span>總交易量 USD</span><b id="tppVol">-</b></div>
+    </div>
+  </section>
+
+  <nav class="filters container">
+    <input id="search" type="text" placeholder="🔍 搜尋名稱 / 地址 / Hash">
+    <div class="btn-group">
+      <button class="filter-btn active" data-party="ALL">全部</button>
+      <button class="filter-btn" data-party="KMT">KMT</button>
+      <button class="filter-btn" data-party="DPP">DPP</button>
+      <button class="filter-btn" data-party="TPP">TPP</button>
+    </div>
+    <div class="btn-group">
+      <button class="filter-btn dir active" data-dir="ALL">買賣全部</button>
+      <button class="filter-btn dir" data-dir="BUY">▲ BUY</button>
+      <button class="filter-btn dir" data-dir="SELL">▼ SELL</button>
+    </div>
+    <div class="btn-group">
+      <label>最低 USD：<input id="minUsd" type="number" min="0" value="0" style="width:80px"></label>
+    </div>
+  </nav>
+
+  <main class="feed container" id="feed">
+    <div class="loading">載入中…</div>
+  </main>
+
+  <footer class="container">
+    <p>資料來源：Blockscout 鏈上 + Polymarket data-api ｜ 時區 UTC+8 ｜ 僅供研究參考，非投資建議</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+# 大檔 / 本地資料庫 / 快取
+monitor.db
+monitor.db-journal
+*.xlsx
+*.xlsm
+~$*
+usdc_cache.json
+wallet_names.json
+
+# 中間 JSON
+enriched_missing_trades.json
+missing_onchain_txs.json
+scripts/eoa_proposer_analysis.json
+scripts/event.txt
+scripts/check_result.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# 編輯器
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 個人調查資料夾與筆記
+@*/
+賭博網站.txt
+
+# 但網站要 push（明確包含）
+!docs/
+!docs/data.json
